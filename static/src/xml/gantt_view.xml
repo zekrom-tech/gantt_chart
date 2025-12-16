@@ -32,12 +32,6 @@
                     
                     <div class="o_gantt_controller_scales btn-group btn-group-sm" role="group">
                         <button 
-                            t-attf-class="btn btn-sm {{ state.scale === 'day' ? 'btn-primary' : 'btn-outline-secondary' }}" 
-                            t-on-click="() => this.onScaleChange('day')"
-                            title="Day View">
-                            Day
-                        </button>
-                        <button 
                             t-attf-class="btn btn-sm {{ state.scale === 'week' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                             t-on-click="() => this.onScaleChange('week')"
                             title="Week View">
@@ -54,6 +48,15 @@
                             t-on-click="() => this.onScaleChange('year')"
                             title="Year View">
                             Year
+                        </button>
+                    </div>
+
+                    <div class="o_gantt_controller_nav btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-secondary" t-on-click="() => this.navigate('prev')" title="Previous">
+                            <i class="fa fa-chevron-left"/>
+                        </button>
+                        <button class="btn btn-outline-secondary" t-on-click="() => this.navigate('next')" title="Next">
+                            <i class="fa fa-chevron-right"/>
                         </button>
                     </div>
 
@@ -111,7 +114,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <span>
                         <i class="fa fa-info-circle"/> 
-                        <strong>Tip:</strong> Drag tasks to reschedule, double-click to edit, wheel to zoom, Ctrl+Wheel to navigate, Shift+Wheel to change time scale
+                        <strong>Tip:</strong> Drag tasks to reschedule (in edit mode), double-click to edit (in view mode), wheel to move left or right , Ctrl+Wheel to zoom, Shift+Wheel to move down or up .
                     </span>
                     <span>
                         Total: <strong t-esc="state.ganttData.reduce((acc, g) => acc + g.tasks.length, 0)"/> tasks

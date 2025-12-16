@@ -21,6 +21,7 @@ export class GanttController extends Component {
             ganttData: [],
             isLoading: false,
             editable: true,
+            hasCenteredToday: false,
         });
 
         onWillStart(async () => await this.loadGanttData());
@@ -44,6 +45,11 @@ export class GanttController extends Component {
                     group_by: this.state.groupBy 
                 }
             );
+            // After first successful load, center on today once
+            if (!this.state.hasCenteredToday) {
+                window.dispatchEvent(new CustomEvent('gantt-navigate', { detail: { type: 'today' } }));
+                this.state.hasCenteredToday = true;
+            }
         } catch (error) {
             this.notification.add("Failed to load Gantt data", { type: "danger" });
             console.error("Gantt data load error:", error);
@@ -105,6 +111,12 @@ export class GanttController extends Component {
 
     onScaleChange(scale) { 
         this.state.scale = scale; 
+    }
+
+    navigate(type) {
+        // Dispatch a window-level event so the renderer can listen regardless of DOM structure
+        const event = new CustomEvent('gantt-navigate', { detail: { type } });
+        window.dispatchEvent(event);
     }
 
     async onGroupByChange(ev) {

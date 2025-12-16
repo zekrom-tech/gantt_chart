@@ -55,39 +55,20 @@ class ProjectTask(models.Model):
         """
         Synchronize all date fields to ensure consistency
         """
-        # Sync task_end_date with date_deadline - keep the same time
+        # Sync task_end_date with date_deadline - always copy exact datetime
         if vals.get('task_end_date'):
             if 'date_deadline' not in vals:
-                vals['date_deadline'] = vals['task_end_date'].date()
+                vals['date_deadline'] = vals['task_end_date']
             # Also sync with date_end if it exists, keeping exact same datetime
             if hasattr(self, 'date_end') and 'date_end' not in vals:
                 vals['date_end'] = vals['task_end_date']
         
-        # Sync date_deadline with task_end_date - preserve existing time if possible
+        # Sync date_deadline with task_end_date - always copy exact datetime
         if vals.get('date_deadline') and 'task_end_date' not in vals:
-            if isinstance(vals['date_deadline'], str):
-                vals['date_deadline'] = fields.Date.from_string(vals['date_deadline'])
-            
-            # Try to preserve existing task_end_date time, otherwise use end of day
-            existing_end_time = None
-            if hasattr(self, 'task_end_date') and self.task_end_date:
-                existing_end_time = self.task_end_date.time()
-            
-            deadline_datetime = fields.Datetime.to_datetime(vals['date_deadline'])
-            if existing_end_time:
-                # Preserve the existing time
-                vals['task_end_date'] = deadline_datetime.replace(
-                    hour=existing_end_time.hour,
-                    minute=existing_end_time.minute,
-                    second=existing_end_time.second
-                )
-            else:
-                # Use end of day (17:00) as default
-                vals['task_end_date'] = deadline_datetime.replace(hour=17, minute=0, second=0)
-            
+            vals['task_end_date'] = vals['date_deadline']
             # Also sync with date_end if it exists
             if hasattr(self, 'date_end') and 'date_end' not in vals:
-                vals['date_end'] = vals['task_end_date']
+                vals['date_end'] = vals['date_deadline']
         
         # Sync task_start_date with date_start
         if vals.get('task_start_date'):
@@ -108,8 +89,8 @@ class ProjectTask(models.Model):
     def _onchange_task_end_date_updates_deadline(self):
         """Synchronize task_end_date with deadline field"""
         if self.task_end_date:
-            # Keep the same date for deadline to avoid time discrepancies
-            self.date_deadline = self.task_end_date.date()
+            # Always copy the exact datetime to deadline to preserve time
+            self.date_deadline = self.task_end_date
             # Also sync with date_end if it exists, keeping exact same datetime
             if hasattr(self, 'date_end'):
                 self.date_end = self.task_end_date
@@ -118,19 +99,8 @@ class ProjectTask(models.Model):
     def _onchange_deadline_updates_task_end_date(self):
         """Synchronize deadline with task_end_date field"""
         if self.date_deadline:
-            # If task_end_date already exists, preserve its time
-            if self.task_end_date:
-                # Preserve the existing time
-                self.task_end_date = fields.Datetime.to_datetime(self.date_deadline).replace(
-                    hour=self.task_end_date.hour,
-                    minute=self.task_end_date.minute,
-                    second=self.task_end_date.second
-                )
-            else:
-                # Set end of day for the deadline (17:00)
-                self.task_end_date = fields.Datetime.to_datetime(self.date_deadline).replace(
-                    hour=17, minute=0, second=0
-                )
+            # Always copy the exact datetime to preserve time
+            self.task_end_date = self.date_deadline
             # Also sync with date_end if it exists
             if hasattr(self, 'date_end'):
                 self.date_end = self.task_end_date

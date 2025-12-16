@@ -17,8 +17,7 @@ Features:
 - Multiple time scales (Day, Week, Month, Year).
 - Built with a robust, event-driven JavaScript architecture for stability.
     """,
-    'author': 'Concept Solutions ',
-    'website': 'https://www.csloman.com',
+    'author': 'ZEKROM TECHNOLOGIES',
     'depends': ['project', 'web'],
     'data': [
         'security/ir.model.access.csv',

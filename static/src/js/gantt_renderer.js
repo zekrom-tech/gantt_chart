@@ -19,6 +19,8 @@ export class GanttRenderer extends Component {
             scrollX: 0,
             scrollY: 0,
             draggedTask: null,
+            isPanning: false,
+            panStartX: 0,
             tooltip: { visible: false, content: '', x: 0, y: 0 },
             hoveredTask: null,
             zoom: 1.0,
@@ -40,6 +42,14 @@ export class GanttRenderer extends Component {
             this.setupCanvas();
             this.drawGantt();
             window.addEventListener('resize', this.handleResize.bind(this));
+            // Listen for navigation commands globally
+            this._navigateHandler = (e) => this.handleNavigate(e.detail);
+            window.addEventListener('gantt-navigate', this._navigateHandler);
+            // Center view on today initially for better UX
+            this.centerOnToday();
+            // Keyboard navigation
+            this._keyHandler = (e) => this.handleKey(e);
+            window.addEventListener('keydown', this._keyHandler);
         });
 
         onWillUnmount(() => {
@@ -47,12 +57,31 @@ export class GanttRenderer extends Component {
             if (this.animationFrame) {
                 cancelAnimationFrame(this.animationFrame);
             }
+            if (this._navigateHandler) {
+                window.removeEventListener('gantt-navigate', this._navigateHandler);
+            }
+            if (this._keyHandler) {
+                window.removeEventListener('keydown', this._keyHandler);
+            }
         });
 
         onWillUpdateProps(() => {
             this.scheduleRedraw();
         });
     }
+    formatDateLocal(date) {
+        const pad = (n) => String(n).padStart(2, '0');
+        const d = date instanceof Date ? date : new Date(date);
+        return (
+            d.getFullYear() + '-' +
+            pad(d.getMonth() + 1) + '-' +
+            pad(d.getDate()) + ' ' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes()) + ':' +
+            pad(d.getSeconds())
+        );
+    }
+
 
     get cellWidth() {
         // Adjust base width per scale for better zooming behavior
@@ -90,6 +119,7 @@ export class GanttRenderer extends Component {
 
     handleResize() {
         this.setupCanvas();
+        this.clampScrollIntoView();
         this.scheduleRedraw();
     }
 
@@ -136,6 +166,53 @@ export class GanttRenderer extends Component {
         this.drawSidebar(ctx, data, rect);
     }
 
+    getMaxScrollX(rect, dates) {
+        // total content width minus viewport
+        const scale = this.props.scale || 'month';
+        let totalUnits = 0;
+        if (scale === 'week') {
+            const days = Math.ceil((dates.end - dates.start) / 86400000);
+            totalUnits = Math.ceil(days / 7);
+        } else if (scale === 'month') {
+            // Month view renders per day, so use number of days
+            const days = Math.ceil((dates.end - dates.start) / 86400000);
+            totalUnits = days;
+        } else {
+            const months = (dates.end.getFullYear() - dates.start.getFullYear()) * 12 + (dates.end.getMonth() - dates.start.getMonth()) + 1;
+            totalUnits = months;
+        }
+        const contentWidth = this.sidebarWidth + totalUnits * this.cellWidth;
+        const viewportWidth = rect.width;
+        return Math.max(0, contentWidth - viewportWidth);
+    }
+
+    clampScrollIntoView() {
+        const canvas = this.canvasRef.el;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const data = this.props.data || [];
+        const dates = this.calculateDateRange(data);
+        const maxX = this.getMaxScrollX(rect, dates);
+        this.state.scrollX = Math.max(0, Math.min(this.state.scrollX, maxX));
+        this.state.scrollY = Math.max(0, this.state.scrollY);
+    }
+
+    centerOnToday() {
+        const canvas = this.canvasRef.el;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const data = this.props.data || [];
+        const dates = this.calculateDateRange(data);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        // Use the same dateToX calculation to ensure consistency
+        const xToday = this.dateToX(today, dates) + this.state.scrollX;
+        const centerX = this.sidebarWidth + (rect.width - this.sidebarWidth) / 2;
+        this.state.scrollX = Math.max(0, xToday - centerX);
+        this.clampScrollIntoView();
+        this.scheduleRedraw();
+    }
+
     drawEmptyState(ctx, rect) {
         ctx.font = '16px Arial';
         ctx.fillStyle = '#aaa';
@@ -157,14 +234,14 @@ export class GanttRenderer extends Component {
         if (!minDate || !maxDate) {
             // If no tasks, show current month with some padding
             const today = new Date();
-            minDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            maxDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
+            minDate = new Date(today.getFullYear(), today.getMonth() - 6, 1);
+            maxDate = new Date(today.getFullYear(), today.getMonth() + 18, 0);
             return { start: minDate, end: maxDate };
         }
 
-        // Add more padding to date range for better navigation
-        minDate = new Date(minDate.getFullYear(), minDate.getMonth() - 1, 1);
-        maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 6, 0);
+        // Add much more padding to date range for better navigation
+        minDate = new Date(minDate.getFullYear(), minDate.getMonth() - 12, 1);
+        maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 24, 0);
 
         return { start: minDate, end: maxDate };
     }
@@ -291,7 +368,9 @@ export class GanttRenderer extends Component {
             while (current <= dates.end) {
                 const monthX = this.dateToX(new Date(current.getFullYear(), current.getMonth(), 1), dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                if (monthX >= this.sidebarWidth && monthX <= rect.width) {
+                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                }
                 current.setMonth(current.getMonth() + 1);
             }
             ctx.font = '11px Arial';
@@ -309,7 +388,9 @@ export class GanttRenderer extends Component {
             while (current <= dates.end) {
                 const monthX = this.dateToX(new Date(current.getFullYear(), current.getMonth(), 1), dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                if (monthX >= this.sidebarWidth && monthX <= rect.width) {
+                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                }
                 current.setMonth(current.getMonth() + 1);
             }
             ctx.font = '11px Arial';
@@ -332,7 +413,9 @@ export class GanttRenderer extends Component {
             let currentYear = dates.start.getFullYear();
             while (currentYear <= dates.end.getFullYear()) {
                 const yearX = this.dateToX(new Date(currentYear, 0, 1), dates);
-                ctx.fillText(String(currentYear), Math.max(this.sidebarWidth + 5, yearX + 5), 15);
+                if (yearX >= this.sidebarWidth && yearX <= rect.width) {
+                    ctx.fillText(String(currentYear), Math.max(this.sidebarWidth + 5, yearX + 5), 15);
+                }
                 currentYear++;
             }
             ctx.font = '11px Arial';
@@ -415,6 +498,13 @@ export class GanttRenderer extends Component {
             group.tasks.forEach(task => {
                 const start = new Date(task.start_date);
                 const end = new Date(task.end_date);
+                
+                // If end time is exactly midnight (00:00:00), treat it as end of previous day
+                if (end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0) {
+                    end.setDate(end.getDate() - 1);
+                    end.setHours(23, 59, 59, 999);
+                }
+                
                 const startX = this.dateToX(start, dates);
                 const endX = this.dateToX(end, dates);
                 const width = Math.max(endX - startX, 5);
@@ -547,7 +637,11 @@ export class GanttRenderer extends Component {
 
     dateToX(date, dates) {
         const scale = this.props.scale || 'month';
-        const days = (date - dates.start) / 86400000;
+        // Ensure we're working with local dates to avoid timezone issues
+        const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+        const localStart = new Date(dates.start.getTime() - (dates.start.getTimezoneOffset() * 60000));
+        
+        const days = (localDate - localStart) / 86400000;
         if (scale === 'day' || scale === 'month') {
             return this.sidebarWidth + days * this.cellWidth - this.state.scrollX;
         } else if (scale === 'week') {
@@ -555,26 +649,32 @@ export class GanttRenderer extends Component {
             return this.sidebarWidth + weeks * this.cellWidth - this.state.scrollX;
         } else {
             // year: months resolution
-            const months = (date.getFullYear() - dates.start.getFullYear()) * 12 + (date.getMonth() - dates.start.getMonth()) + (date.getDate()-1)/30;
+            const months = (localDate.getFullYear() - localStart.getFullYear()) * 12 + (localDate.getMonth() - localStart.getMonth()) + (localDate.getDate()-1)/30;
             return this.sidebarWidth + months * this.cellWidth - this.state.scrollX;
         }
     }
 
     xToDate(x, dates) {
         const scale = this.props.scale || 'month';
+        // Ensure we're working with local dates to avoid timezone issues
+        const localStart = new Date(dates.start.getTime() - (dates.start.getTimezoneOffset() * 60000));
+        
         if (scale === 'day' || scale === 'month') {
             const days = (x - this.sidebarWidth + this.state.scrollX) / this.cellWidth;
-            return new Date(dates.start.getTime() + days * 86400000);
+            const result = new Date(localStart.getTime() + days * 86400000);
+            // Convert back to local timezone
+            return new Date(result.getTime() + (result.getTimezoneOffset() * 60000));
         } else if (scale === 'week') {
             const weeks = (x - this.sidebarWidth + this.state.scrollX) / this.cellWidth;
             const days = weeks * 7.0;
-            return new Date(dates.start.getTime() + days * 86400000);
+            const result = new Date(localStart.getTime() + days * 86400000);
+            return new Date(result.getTime() + (result.getTimezoneOffset() * 60000));
         } else {
             // year scale
             const months = (x - this.sidebarWidth + this.state.scrollX) / this.cellWidth;
-            const start = new Date(dates.start.getFullYear(), dates.start.getMonth(), 1);
+            const start = new Date(localStart.getFullYear(), localStart.getMonth(), 1);
             start.setMonth(start.getMonth() + months);
-            return start;
+            return new Date(start.getTime() + (start.getTimezoneOffset() * 60000));
         }
     }
 
@@ -600,6 +700,11 @@ export class GanttRenderer extends Component {
             };
             this.state.tooltip.visible = false;
             this.canvasRef.el.style.cursor = 'grabbing';
+        } else {
+            // begin panning when clicking empty area
+            this.state.isPanning = true;
+            this.state.panStartX = e.clientX;
+            this.canvasRef.el.style.cursor = 'grabbing';
         }
     }
 
@@ -621,11 +726,17 @@ export class GanttRenderer extends Component {
                 .find(t => t.id === this.state.draggedTask.id);
             
             if (taskInUI) {
-                // Format dates consistently for Odoo (without timezone suffix)
-                taskInUI.start_date = newStartDate.toISOString().replace('Z', '');
-                taskInUI.end_date = newEndDate.toISOString().replace('Z', '');
+                // Format dates consistently in local time for Odoo
+                taskInUI.start_date = this.formatDateLocal(newStartDate);
+                taskInUI.end_date = this.formatDateLocal(newEndDate);
                 this.scheduleRedraw();
             }
+        } else if (this.state.isPanning) {
+            const dx = e.clientX - this.state.panStartX;
+            this.state.panStartX = e.clientX;
+            this.state.scrollX -= dx;
+            this.clampScrollIntoView();
+            this.scheduleRedraw();
         } else {
             const task = this.getTaskAt(x, y);
             this.state.hoveredTask = task;
@@ -667,6 +778,9 @@ export class GanttRenderer extends Component {
             
             this.state.draggedTask = null;
             this.canvasRef.el.style.cursor = 'default';
+        } else if (this.state.isPanning) {
+            this.state.isPanning = false;
+            this.canvasRef.el.style.cursor = 'default';
         }
     }
 
@@ -691,29 +805,33 @@ export class GanttRenderer extends Component {
         e.preventDefault();
         
         if (e.ctrlKey || e.metaKey) {
-            // Navigate with Ctrl/Cmd + wheel
-            this.state.scrollX = Math.max(0, this.state.scrollX + (e.deltaX || e.deltaY));
-            this.state.scrollY = Math.max(0, this.state.scrollY + e.deltaY);
-        } else if (e.shiftKey) {
-            // Shift + wheel for vertical time scale navigation
-            this.handleVerticalTimeScaleNavigation(e.deltaY);
-        } else {
-            // Regular wheel for zoom
+            // Ctrl/Cmd + wheel for zoom
             const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
             const oldZoom = this.state.zoom;
             this.state.zoom = Math.max(0.5, Math.min(2.0, this.state.zoom * zoomDelta));
-            
-            // Adjust scroll position to keep content centered when zooming
+            // Keep content centered
             const zoomRatio = this.state.zoom / oldZoom;
             this.state.scrollX = this.state.scrollX * zoomRatio;
             this.state.scrollY = this.state.scrollY * zoomRatio;
+            this.clampScrollIntoView();
+        } else if (e.shiftKey) {
+            // Shift + wheel pans vertically
+            this.state.scrollY = this.state.scrollY + e.deltaY;
+            this.clampScrollIntoView();
+        } else {
+            // Default wheel pans horizontally; vertical wheel mapped to horizontal pan
+        // Nudge horizontally; when headers are stacked off-screen, just pan without showing negative space
+        const panDelta = (e.deltaX !== 0 ? e.deltaX : e.deltaY);
+        this.state.scrollX = this.state.scrollX + panDelta;
+            this.clampScrollIntoView();
         }
         
         this.scheduleRedraw();
     }
 
     handleVerticalTimeScaleNavigation(deltaY) {
-        const scales = ['day', 'week', 'month', 'year'];
+        // Day scale removed per requirements
+        const scales = ['week', 'month', 'year'];
         const currentScale = this.props.scale || 'month';
         const currentIndex = scales.indexOf(currentScale);
         
@@ -726,8 +844,81 @@ export class GanttRenderer extends Component {
         }
     }
 
+    handleKey(e) {
+        const canvas = this.canvasRef.el;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const panStepX = Math.max(40, (rect.width - this.sidebarWidth) * 0.1);
+        const panStepY = this.cellHeight * 2;
+        if (e.key === 'ArrowRight') {
+            this.state.scrollX += panStepX;
+        } else if (e.key === 'ArrowLeft') {
+            this.state.scrollX -= panStepX;
+        } else if (e.key === 'ArrowDown') {
+            this.state.scrollY += panStepY;
+        } else if (e.key === 'ArrowUp') {
+            this.state.scrollY -= panStepY;
+        } else if (e.key === 'Home') {
+            this.handleNavigate({ type: 'today' });
+            return;
+        } else if ((e.key === '+' || e.key === '=') && (e.ctrlKey || e.metaKey)) {
+            // Ctrl + '+' zoom in
+            this.onWheel({ preventDefault: () => {}, ctrlKey: true, metaKey: false, deltaY: -1 });
+            return;
+        } else if ((e.key === '-' || e.key === '_') && (e.ctrlKey || e.metaKey)) {
+            // Ctrl + '-' zoom out
+            this.onWheel({ preventDefault: () => {}, ctrlKey: true, metaKey: false, deltaY: 1 });
+            return;
+        } else if (e.altKey && (e.key === 'PageUp' || e.key === 'PageDown')) {
+            // Alt + PageUp/PageDown to change time scale
+            const delta = e.key === 'PageUp' ? -1 : 1;
+            this.handleVerticalTimeScaleNavigation(delta);
+        } else {
+            return;
+        }
+        this.clampScrollIntoView();
+        this.scheduleRedraw();
+    }
+
+    handleNavigate(detail) {
+        if (!detail) return;
+        const canvas = this.canvasRef.el;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const data = this.props.data;
+        const dates = this.calculateDateRange(data);
+        const scale = this.props.scale || 'month';
+
+        if (detail.type === 'today') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const xToday = this.dateToX(today, dates);
+            // Center today in viewport
+            const centerX = this.sidebarWidth + (rect.width - this.sidebarWidth) / 2;
+            this.state.scrollX = Math.max(0, xToday - centerX);
+        } else if (detail.type === 'prev' || detail.type === 'next') {
+            const direction = detail.type === 'prev' ? -1 : 1;
+            let deltaPx = 0;
+            if (scale === 'week') {
+                deltaPx = this.cellWidth * 1 * direction; // one week
+            } else if (scale === 'month') {
+                deltaPx = this.cellWidth * 7 * direction; // approx one week jump
+            } else if (scale === 'year') {
+                deltaPx = this.cellWidth * 1 * direction; // one month at year scale
+            }
+            // Fallback: pan by half the viewport
+            if (!deltaPx) {
+                deltaPx = ((rect.width - this.sidebarWidth) / 2) * direction;
+            }
+            this.state.scrollX = this.state.scrollX + deltaPx;
+        }
+        this.clampScrollIntoView();
+        this.scheduleRedraw();
+    }
+
     onMouseLeave() {
         this.state.draggedTask = null;
+        this.state.isPanning = false;
         this.state.tooltip.visible = false;
         this.state.hoveredTask = null;
         this.canvasRef.el.style.cursor = 'default';
