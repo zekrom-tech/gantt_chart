@@ -7,7 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { GanttRenderer } from "./gantt_renderer";
 
 export class GanttController extends Component {
-    static template = "project_task_gantt.GanttController";
+    static template = "gantt_chart.GanttController";
     static components = { GanttRenderer };
 
     setup() {
@@ -19,18 +19,68 @@ export class GanttController extends Component {
             scale: 'month',
             groupBy: this.props.groupBy || 'project_id',
             ganttData: [],
+            filteredData: [], // Filtered data for search/date range
             isLoading: false,
-            editable: true,
+            // Default to View Only mode for safety - users must explicitly enable editing
+            editable: false,
             hasCenteredToday: false,
+            // Track currently selected task for color assignment
+            selectedTaskId: null,
+            // Search functionality
+            searchQuery: '',
+            // Date range filter
+            dateRangeFilter: 'all',
+            // Collapsible groups - stores collapsed group IDs
+            collapsedGroups: new Set(),
         });
+        
+        // Bind keyboard handler
+        this._onKeyDown = this._onKeyDown.bind(this);
 
-        onWillStart(async () => await this.loadGanttData());
+        onWillStart(async () => {
+            await this.loadGanttData();
+            // Add keyboard listener
+            document.addEventListener('keydown', this._onKeyDown);
+        });
+        
         onWillUpdateProps(async (nextProps) => {
             if (JSON.stringify(nextProps.domain) !== JSON.stringify(this.props.domain) ||
                 nextProps.groupBy !== this.props.groupBy) {
                 await this.loadGanttData(nextProps);
             }
         });
+    }
+    
+    // Keyboard shortcuts handler
+    _onKeyDown(ev) {
+        // Only handle if Gantt view is visible
+        if (!document.querySelector('.o_gantt_view')) return;
+        
+        // Escape - clear selection and search
+        if (ev.key === 'Escape') {
+            this.clearSearch();
+            this.state.selectedTaskId = null;
+            return;
+        }
+        
+        // Ctrl+F - focus search
+        if (ev.ctrlKey && ev.key === 'f') {
+            ev.preventDefault();
+            const searchInput = document.querySelector('.o_gantt_view input[type="text"]');
+            if (searchInput) searchInput.focus();
+            return;
+        }
+        
+        // Arrow keys for navigation (when not in input)
+        if (document.activeElement.tagName !== 'INPUT') {
+            if (ev.key === 'ArrowLeft') {
+                this.navigate('prev');
+            } else if (ev.key === 'ArrowRight') {
+                this.navigate('next');
+            } else if (ev.key === 'Home') {
+                this.navigate('today');
+            }
+        }
     }
 
     async loadGanttData(props = this.props) {
@@ -45,6 +95,9 @@ export class GanttController extends Component {
                     group_by: this.state.groupBy 
                 }
             );
+            // Apply any active filters
+            this.applyFilters();
+            
             // After first successful load, center on today once
             if (!this.state.hasCenteredToday) {
                 window.dispatchEvent(new CustomEvent('gantt-navigate', { detail: { type: 'today' } }));
@@ -56,6 +109,111 @@ export class GanttController extends Component {
         } finally {
             this.state.isLoading = false;
         }
+    }
+    
+    // Apply search and date range filters
+    applyFilters() {
+        let filtered = JSON.parse(JSON.stringify(this.state.ganttData));
+        
+        // Apply search filter
+        if (this.state.searchQuery) {
+            const query = this.state.searchQuery.toLowerCase();
+            filtered = filtered.map(group => ({
+                ...group,
+                tasks: group.tasks.filter(task => 
+                    task.name.toLowerCase().includes(query) ||
+                    (task.description && task.description.toLowerCase().includes(query))
+                )
+            })).filter(group => group.tasks.length > 0);
+        }
+        
+        // Apply date range filter
+        if (this.state.dateRangeFilter !== 'all') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let startDate, endDate;
+            
+            switch (this.state.dateRangeFilter) {
+                case 'week':
+                    // Start of week (Monday)
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - today.getDay() + 1);
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    break;
+                case 'quarter':
+                    const quarter = Math.floor(today.getMonth() / 3);
+                    startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                    endDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+                    break;
+            }
+            
+            if (startDate && endDate) {
+                filtered = filtered.map(group => ({
+                    ...group,
+                    tasks: group.tasks.filter(task => {
+                        const taskStart = new Date(task.start_date);
+                        const taskEnd = new Date(task.end_date);
+                        // Task overlaps with the date range
+                        return taskStart <= endDate && taskEnd >= startDate;
+                    })
+                })).filter(group => group.tasks.length > 0);
+            }
+        }
+        
+        // Remove collapsed groups
+        if (this.state.collapsedGroups.size > 0) {
+            filtered = filtered.map(group => ({
+                ...group,
+                tasks: this.state.collapsedGroups.has(group.id) ? [] : group.tasks,
+                isCollapsed: this.state.collapsedGroups.has(group.id)
+            }));
+        }
+        
+        this.state.filteredData = filtered;
+    }
+    
+    // Search input handler
+    onSearchInput(ev) {
+        this.state.searchQuery = ev.target.value;
+        this.applyFilters();
+    }
+    
+    // Clear search
+    clearSearch() {
+        this.state.searchQuery = '';
+        this.applyFilters();
+    }
+    
+    // Set date range filter
+    setDateRange(range) {
+        this.state.dateRangeFilter = range;
+        this.applyFilters();
+        
+        // Show notification
+        const labels = { week: 'This Week', month: 'This Month', quarter: 'This Quarter', all: 'All Tasks' };
+        this.notification.add(`Showing: ${labels[range]}`, { type: "info" });
+    }
+    
+    // Toggle group collapse
+    toggleGroupCollapse(groupId) {
+        if (this.state.collapsedGroups.has(groupId)) {
+            this.state.collapsedGroups.delete(groupId);
+        } else {
+            this.state.collapsedGroups.add(groupId);
+        }
+        this.applyFilters();
+    }
+    
+    // Get the data to render (filtered or full)
+    get renderData() {
+        return this.state.filteredData.length > 0 || this.state.searchQuery || this.state.dateRangeFilter !== 'all'
+            ? this.state.filteredData 
+            : this.state.ganttData;
     }
 
     async onTaskUpdated(ev) {
@@ -149,6 +307,38 @@ export class GanttController extends Component {
         this.state.editable = !this.state.editable;
     }
 
+    onTaskSelected(ev) {
+        // Track selected task from renderer
+        this.state.selectedTaskId = ev.detail?.taskId || null;
+    }
+
+    async setTaskColor(colorIndex) {
+        // Get selected task from the last clicked task
+        const taskId = this.state.selectedTaskId;
+        
+        if (!taskId) {
+            this.notification.add("Please click on a task first to select it (task will be highlighted), then choose a color", { 
+                type: "warning",
+                title: "No Task Selected" 
+            });
+            return;
+        }
+
+        try {
+            await this.orm.write(this.props.resModel, [taskId], { color: colorIndex });
+            
+            const colorNames = ['Purple', 'Red', 'Orange', 'Blue', 'Pink', 'Green', 'Violet', 'Amber'];
+            this.notification.add(`Task color changed to ${colorNames[colorIndex] || 'new color'}`, { 
+                type: "success" 
+            });
+            
+            await this.loadGanttData();
+        } catch (error) {
+            this.notification.add("Failed to update task color", { type: "danger" });
+            console.error("Color update error:", error);
+        }
+    }
+
     exportToCSV() {
         const data = this.state.ganttData;
         if (!data || data.length === 0) {
@@ -177,7 +367,7 @@ export class GanttController extends Component {
 }
 
 export class GanttView extends Component {
-    static template = "project_task_gantt.GanttView";
+    static template = "gantt_chart.GanttView";
     static components = { Layout, GanttController };
 
     setup() {
@@ -198,8 +388,8 @@ export class GanttView extends Component {
 
 export const ganttView = {
     type: "gantt",
-    display_name: "Gantt",
-    icon: "fa-tasks",
+    display_name: "Gantt Chart",
+    icon: "fa-align-left",  // Better icon that resembles horizontal bars (Gantt-like)
     multiRecord: true,
     searchMenuTypes: ["filter", "groupBy", "favorite"],
     Controller: GanttController,

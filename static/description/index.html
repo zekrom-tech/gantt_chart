@@ -1,0 +1,419 @@
+<!-- 
+    ╔═══════════════════════════════════════════════════════════════════════════════╗
+    ║         PROJECT TASK GANTT CHART - PREMIUM EDITION FOR ODOO 17               ║
+    ║                    © 2024 ZEKROM TECHNOLOGIES                                 ║
+    ╚═══════════════════════════════════════════════════════════════════════════════╝
+-->
+<style>
+    .gantt-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.7; color: #1f2937; max-width: 1100px; margin: 0 auto; padding: 0; background: #fff; }
+    .gantt-page * { box-sizing: border-box; }
+    
+    /* Animations */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); } 50% { box-shadow: 0 0 35px rgba(16, 185, 129, 0.7); } }
+    
+    .fade-in { animation: fadeInUp 0.6s ease-out; }
+    .pulse-btn { animation: pulse 2s ease-in-out infinite; }
+    .glow-anim { animation: glow 2s ease-in-out infinite; }
+    
+    /* Card hover effects */
+    .hover-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .hover-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important; }
+    
+    /* Button effects */
+    .cta-btn { transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5); }
+    
+    /* Ribbon */
+    .ribbon { position: absolute; top: 22px; right: -32px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 10px 45px; font-size: 0.8em; font-weight: 800; transform: rotate(45deg); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5); z-index: 10; text-transform: uppercase; letter-spacing: 1px; }
+    
+    /* Feature icon hover */
+    .feature-icon { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .hover-card:hover .feature-icon { transform: scale(1.15) rotate(5deg); }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hide-mobile { display: none !important; }
+        .stack-mobile { display: block !important; width: 100% !important; }
+    }
+</style>
+
+<div class="gantt-page">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- HERO SECTION WITH NEW YEAR SALE RIBBON -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div class="fade-in" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%); color: white; padding: 70px 50px 60px; border-radius: 24px; text-align: center; margin-bottom: 40px; box-shadow: 0 30px 60px -15px rgba(79, 70, 229, 0.5); position: relative; overflow: hidden;">
+        
+        <!-- NEW YEAR SALE Ribbon -->
+        <div class="ribbon">🎉 68% OFF</div>
+        
+        <!-- Decorative elements -->
+        <div style="position: absolute; top: -80px; right: -80px; width: 250px; height: 250px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: rgba(255,255,255,0.03); border-radius: 50%;"></div>
+        <div style="position: absolute; top: 50%; left: 10%; width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+        <div style="position: absolute; top: 30%; right: 15%; width: 4px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: 20%; left: 20%; width: 8px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 50%;"></div>
+        
+        <div style="position: relative; z-index: 1;">
+            <!-- Trust badges -->
+            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 25px; flex-wrap: wrap;">
+                <span class="glow-anim" style="background: linear-gradient(135deg, #10b981, #059669); padding: 6px 16px; border-radius: 50px; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">✓ Odoo 17 Certified</span>
+                <span style="background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 50px; font-size: 0.72em; font-weight: 600; border: 1px solid rgba(255,255,255,0.25);">⚡ Enterprise Ready</span>
+                <span style="background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 50px; font-size: 0.72em; font-weight: 600; border: 1px solid rgba(255,255,255,0.25);">🛡️ Production Tested</span>
+            </div>
+            
+            <div style="font-size: 4.5em; margin-bottom: 15px; animation: float 3s ease-in-out infinite;">📊</div>
+            
+            <h1 style="font-size: 2.8em; margin: 0 0 15px 0; font-weight: 800; letter-spacing: -1px; line-height: 1.1;">Project Task Gantt Chart</h1>
+            <p style="font-size: 1.1em; opacity: 0.9; max-width: 650px; margin: 0 auto 25px; font-weight: 400; line-height: 1.8;">
+                <strong>The #1 Gantt chart for Odoo 17.</strong> Enterprise-grade timeline visualization with drag-and-drop scheduling, real-time sync, and premium features that save hours every week.
+            </p>
+            
+            <!-- NEW YEAR SALE Banner -->
+            <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; padding: 12px 30px; border-radius: 12px; display: inline-block; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);">
+                <span style="font-size: 1.1em; font-weight: 800;">🎊 NEW YEAR SALE — Limited Time Only!</span>
+            </div>
+            
+            <!-- CTA Buttons -->
+            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;">
+                <a class="cta-btn pulse-btn" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 18px 45px; border-radius: 50px; font-weight: 700; font-size: 1.1em; text-decoration: none; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);">
+                    🛒 Buy Now — <span style="text-decoration: line-through; opacity: 0.7;">$159</span> <span style="font-size: 1.2em;">$51</span>
+                </a>
+                <a class="cta-btn" style="display: inline-block; background: rgba(255,255,255,0.15); color: white; padding: 18px 35px; border-radius: 50px; font-weight: 600; font-size: 1em; text-decoration: none; border: 2px solid rgba(255,255,255,0.3);">
+                    ↓ View Features
+                </a>
+            </div>
+            
+            <!-- Feature pills -->
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">
+                <span style="background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-size: 0.8em; font-weight: 500;">🖱️ Drag & Drop</span>
+                <span style="background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-size: 0.8em; font-weight: 500;">🎨 Color Coding</span>
+                <span style="background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-size: 0.8em; font-weight: 500;">🔍 Search & Filter</span>
+                <span style="background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-size: 0.8em; font-weight: 500;">📤 CSV Export</span>
+                <span style="background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-size: 0.8em; font-weight: 500;">⌨️ Keyboard Nav</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- MAIN SCREENSHOT -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div class="fade-in" style="margin-bottom: 30px; text-align: center;">
+        <div style="display: inline-block; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px -15px rgba(0,0,0,0.25); border: 3px solid #e5e7eb;">
+            <img src="screenshot_1_overview.png" alt="Gantt Chart Overview" style="max-width: 100%; display: block;" />
+        </div>
+        <p style="color: #6b7280; margin-top: 20px; font-size: 0.95em; font-style: italic;">Beautiful timeline visualization trusted by 500+ Odoo users worldwide</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- IMPORTANT NOTICE - DATES REQUIREMENT -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 50px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 25px 30px; border-radius: 16px; border-left: 5px solid #f59e0b; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 50px; vertical-align: top; padding-right: 15px;">
+                    <div style="font-size: 2em;">⚠️</div>
+                </td>
+                <td>
+                    <h3 style="color: #92400e; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Important: Set Task Dates</h3>
+                    <p style="color: #78350f; margin: 0; line-height: 1.7; font-size: 0.95em;">
+                        <strong>Tasks must have both "Start Date" and "End Date" fields filled in to appear on the Gantt chart.</strong><br/>
+                        Open your tasks → Set the <strong>Start Date</strong> and <strong>End Date</strong> fields → Tasks will automatically appear on the timeline.
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- VALUE CARDS -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px;">
+        <div style="text-align: center; margin-bottom: 35px;">
+            <span style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 6px 18px; border-radius: 50px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Why Choose Us</span>
+            <h2 style="font-size: 2.2em; color: #1f2937; margin: 10px 0 0 0; font-weight: 800;">Built for Real Business Needs</h2>
+        </div>
+        
+        <table style="width: 100%; border-collapse: separate; border-spacing: 15px;">
+            <tr>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);">⚡</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Zero Configuration</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">Install and use immediately. No complex setup or training required.</p>
+                </td>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);">🔒</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Secure by Default</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">View-Only mode prevents accidents. Respects all Odoo permissions.</p>
+                </td>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);">🚀</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Upgrade Safe</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">Clean architecture. Won't break during Odoo updates.</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);">💎</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Premium Support</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">Direct email support from developers who built it.</p>
+                </td>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #06b6d4, #0891b2); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);">📱</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Works Everywhere</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">Desktop, laptop, tablet. Any modern browser.</p>
+                </td>
+                <td class="hover-card" style="width: 33.33%; vertical-align: top; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; text-align: center;">
+                    <div class="feature-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 16px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6em; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);">🔄</div>
+                    <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 1.15em; font-weight: 700;">Free Updates</h3>
+                    <p style="color: #6b7280; font-size: 0.88em; margin: 0;">Lifetime updates included. Always compatible.</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- FEATURES GRID -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); padding: 50px 40px; border-radius: 24px; border: 1px solid #e5e7eb;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 6px 18px; border-radius: 50px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Full Feature Set</span>
+            <h2 style="font-size: 2em; color: #1f2937; margin: 10px 0 0 0; font-weight: 800;">Everything You Need, Nothing You Don't</h2>
+        </div>
+        
+        <table style="width: 100%; border-collapse: separate; border-spacing: 12px;">
+            <tr>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">🖱️</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">Drag & Drop</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">Reschedule tasks instantly by dragging on the timeline. Auto-saves to database.</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">🎨</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">Color Picker</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">8 beautiful colors to categorize tasks visually. Click → Select → Apply.</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">📅</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">Flexible Scales</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">Week, Month, Year views. Switch instantly for different planning needs.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">👥</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">Smart Grouping</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">Group by Project, Assignee, Stage, Priority, or Deadline Status.</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #14b8a6, #0d9488); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">📤</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">CSV Export</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">One-click export for reports. Includes all task data and durations.</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="hover-card" style="width: 33.33%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;">🔍</div>
+                        <div>
+                            <h4 style="color: #1f2937; margin: 0 0 6px 0; font-size: 1em; font-weight: 700;">Search & Filter</h4>
+                            <p style="color: #6b7280; font-size: 0.85em; margin: 0; line-height: 1.6;">Real-time search. Quick date filters: This Week, Month, Quarter.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- WHY THIS MODULE (COMPARISON) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); padding: 50px 40px; border-radius: 24px; color: white;">
+        <h2 style="text-align: center; font-size: 1.9em; margin: 0 0 10px 0; font-weight: 800; color: #ffffff;">Why This Module?</h2>
+        <p style="text-align: center; color: #c7d2fe; margin: 0 0 40px 0;">Built for real Odoo environments, not demos.</p>
+        
+        <table style="width: 100%; max-width: 850px; margin: 0 auto; border-collapse: separate; border-spacing: 20px;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; background: rgba(16, 185, 129, 0.15); padding: 30px; border-radius: 16px; border: 2px solid rgba(16, 185, 129, 0.3);">
+                    <h3 style="color: #34d399; margin: 0 0 20px 0; font-size: 1.1em; font-weight: 700; text-align: center;">✅ This Module</h3>
+                    <ul style="margin: 0; padding-left: 20px; line-height: 2.2; color: #e0f2fe;">
+                        <li style="color: #e0f2fe;">Premium, modern UI design</li>
+                        <li style="color: #e0f2fe;">Tested on production systems</li>
+                        <li style="color: #e0f2fe;">Direct developer support</li>
+                        <li style="color: #e0f2fe;">Built with OWL framework</li>
+                        <li style="color: #e0f2fe;">Regular updates & improvements</li>
+                        <li style="color: #e0f2fe;">Detailed documentation</li>
+                    </ul>
+                </td>
+                <td style="width: 50%; vertical-align: top; background: rgba(239, 68, 68, 0.1); padding: 30px; border-radius: 16px; border: 2px solid rgba(239, 68, 68, 0.2);">
+                    <h3 style="color: #fca5a5; margin: 0 0 20px 0; font-size: 1.1em; font-weight: 700; text-align: center;">❌ Typical Modules</h3>
+                    <ul style="margin: 0; padding-left: 20px; line-height: 2.2; color: #fecaca;">
+                        <li style="text-decoration: line-through; color: #fca5a5;">Outdated interface</li>
+                        <li style="text-decoration: line-through; color: #fca5a5;">Only tested on demos</li>
+                        <li style="text-decoration: line-through; color: #fca5a5;">No support response</li>
+                        <li style="text-decoration: line-through; color: #fca5a5;">Legacy code patterns</li>
+                        <li style="text-decoration: line-through; color: #fca5a5;">Abandoned after release</li>
+                        <li style="text-decoration: line-through; color: #fca5a5;">No instructions</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- PRICING & NEW YEAR SALE DISCOUNT -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px; background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); padding: 55px 40px; border-radius: 24px; text-align: center; border: 3px solid #fbbf24; position: relative; overflow: hidden;">
+        <!-- Sale decorations -->
+        <div style="position: absolute; top: 10px; left: 10px; font-size: 2em; opacity: 0.3;">🎊</div>
+        <div style="position: absolute; top: 10px; right: 10px; font-size: 2em; opacity: 0.3;">🎉</div>
+        <div style="position: absolute; bottom: 10px; left: 10px; font-size: 2em; opacity: 0.3;">🎆</div>
+        <div style="position: absolute; bottom: 10px; right: 10px; font-size: 2em; opacity: 0.3;">✨</div>
+        
+        <span style="display: inline-block; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 10px 25px; border-radius: 50px; font-size: 0.9em; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);">🎊 NEW YEAR SALE — 68% OFF!</span>
+        
+        <h2 style="font-size: 2.4em; color: #78350f; margin: 0 0 10px 0; font-weight: 800;">Limited Time Pricing</h2>
+        <p style="color: #92400e; margin: 0 0 30px 0; font-size: 1.05em;">Price goes back to $159 after January 15th. Don't miss out!</p>
+        
+        <div style="display: inline-block; background: white; padding: 35px 60px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.12); margin-bottom: 25px;">
+            <div style="margin-bottom: 8px;">
+                <span style="color: #9ca3af; font-size: 1.5em; text-decoration: line-through;">$159.00</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="color: #059669; font-size: 3.5em; font-weight: 800;">$51.00</span>
+            </div>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 20px; border-radius: 50px; display: inline-block; font-weight: 700; font-size: 1.05em;">🔥 Save $108 (68% OFF)</div>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 25px;">
+            <span style="color: #78350f; font-weight: 600;">✓ One-time purchase</span>
+            <span style="color: #78350f; font-weight: 600;">✓ No subscription</span>
+            <span style="color: #78350f; font-weight: 600;">✓ Lifetime updates</span>
+            <span style="color: #78350f; font-weight: 600;">✓ Email support</span>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- INSTALLATION -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 45px 40px; border-radius: 20px; color: white;">
+        <h2 style="text-align: center; font-size: 1.8em; margin: 0 0 30px 0; font-weight: 700;">📚 Quick Start (2 Minutes)</h2>
+        
+        <table style="width: 100%; max-width: 700px; margin: 0 auto;">
+            <tr><td style="background: rgba(255,255,255,0.15); padding: 16px 22px; border-radius: 10px;">
+                <table style="width: 100%;"><tr>
+                    <td style="width: 40px;"><span style="display: inline-block; background: white; color: #059669; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: 800;">1</span></td>
+                    <td><strong>Install</strong> — Apps → Search "Task Gantt Chart" → Install</td>
+                </tr></table>
+            </td></tr>
+            <tr><td style="height: 8px;"></td></tr>
+            <tr><td style="background: rgba(255,255,255,0.1); padding: 16px 22px; border-radius: 10px;">
+                <table style="width: 100%;"><tr>
+                    <td style="width: 40px;"><span style="display: inline-block; background: white; color: #059669; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: 800;">2</span></td>
+                    <td><strong>Set Task Dates</strong> — Open tasks and fill in Start Date & End Date fields</td>
+                </tr></table>
+            </td></tr>
+            <tr><td style="height: 8px;"></td></tr>
+            <tr><td style="background: rgba(255,255,255,0.15); padding: 16px 22px; border-radius: 10px;">
+                <table style="width: 100%;"><tr>
+                    <td style="width: 40px;"><span style="display: inline-block; background: white; color: #059669; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: 800;">3</span></td>
+                    <td><strong>Open Gantt</strong> — Go to Tasks → Click the Gantt icon in view switcher</td>
+                </tr></table>
+            </td></tr>
+            <tr><td style="height: 8px;"></td></tr>
+            <tr><td style="background: rgba(255,255,255,0.1); padding: 16px 22px; border-radius: 10px;">
+                <table style="width: 100%;"><tr>
+                    <td style="width: 40px;"><span style="display: inline-block; background: white; color: #059669; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: 800;">4</span></td>
+                    <td><strong>Enjoy!</strong> — Your tasks appear as bars on the visual timeline 🎉</td>
+                </tr></table>
+            </td></tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- TECHNICAL & COMPATIBILITY -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 60px;">
+        <table style="width: 100%; border-collapse: separate; border-spacing: 15px;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; background: #eff6ff; padding: 28px; border-radius: 16px; border-left: 4px solid #3b82f6;">
+                    <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 1.1em; font-weight: 700;">✅ Compatibility</h3>
+                    <ul style="color: #1e3a8a; margin: 0; padding-left: 18px; line-height: 2;">
+                        <li>Odoo 17 Community & Enterprise</li>
+                        <li>Multi-company environments</li>
+                        <li>Chrome, Firefox, Edge, Safari</li>
+                    </ul>
+                </td>
+                <td style="width: 50%; vertical-align: top; background: #f0fdf4; padding: 28px; border-radius: 16px; border-left: 4px solid #22c55e;">
+                    <h3 style="color: #166534; margin: 0 0 15px 0; font-size: 1.1em; font-weight: 700;">📦 Requirements</h3>
+                    <ul style="color: #14532d; margin: 0; padding-left: 18px; line-height: 2;">
+                        <li>Project module (included in Odoo)</li>
+                        <li>No external dependencies</li>
+                        <li>No complex configuration</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- FINAL CTA -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="margin-bottom: 50px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%); padding: 60px 45px; border-radius: 24px; text-align: center; color: white; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -80px; right: -80px; width: 250px; height: 250px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -60px; left: -60px; width: 180px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+        
+        <div style="position: relative; z-index: 1;">
+            <h2 style="font-size: 2.3em; margin: 0 0 15px 0; font-weight: 800;">Ready to Transform Your Project Planning?</h2>
+            <p style="font-size: 1.15em; opacity: 0.95; margin: 0 auto 35px; max-width: 600px;">Join 500+ project managers who've upgraded their Odoo experience. Start visualizing your timelines today.</p>
+            
+            <a class="cta-btn pulse-btn" style="display: inline-block; background: white; color: #4f46e5; padding: 20px 55px; border-radius: 50px; font-weight: 800; font-size: 1.3em; text-decoration: none; box-shadow: 0 15px 40px rgba(0,0,0,0.25);">
+                🛒 Get Started — $51
+            </a>
+            
+            <p style="margin-top: 25px; opacity: 0.85; font-size: 0.95em;">One-time purchase • Free lifetime updates • 30-day support</p>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <!-- FOOTER -->
+    <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+    <div style="background: #0f172a; color: white; padding: 40px; border-radius: 20px; text-align: center;">
+        <h3 style="margin: 0 0 12px 0; font-size: 1.3em; font-weight: 600;">🤝 Support & Contact</h3>
+        <p style="opacity: 0.7; margin: 0 0 22px 0;">Questions? We respond within 24 hours.</p>
+        
+        <table style="width: auto; margin: 0 auto 25px;">
+            <tr>
+                <td style="padding: 8px 25px;">📧 support@zekromtechnologies.com</td>
+                <td style="padding: 8px 25px;">🌐 www.zekromtechnologies.com</td>
+            </tr>
+        </table>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 22px;">
+            <p style="opacity: 0.5; font-size: 0.85em; margin: 0;">© 2024 ZEKROM TECHNOLOGIES — All Rights Reserved</p>
+        </div>
+    </div>
+
+</div>

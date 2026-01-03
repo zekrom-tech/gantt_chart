@@ -1,268 +1,1493 @@
+// ============================================
+// 🎨 GANTT CHART - PREMIUM EDITION STYLES
+// ============================================
+// Modern, glassmorphic, animated Gantt chart with
+// premium effects, micro-interactions, and stunning visuals
+// ============================================
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎨 DESIGN TOKENS & VARIABLES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Primary Color Palette
+$gantt-primary: #6366f1;
+$gantt-primary-light: #818cf8;
+$gantt-primary-dark: #4f46e5;
+$gantt-primary-glow: rgba(99, 102, 241, 0.4);
+
+// Accent Colors
+$gantt-accent: #06b6d4;
+$gantt-accent-light: #22d3ee;
+$gantt-success: #10b981;
+$gantt-success-light: #34d399;
+$gantt-warning: #f59e0b;
+$gantt-warning-light: #fbbf24;
+$gantt-danger: #ef4444;
+$gantt-danger-light: #f87171;
+$gantt-info: #3b82f6;
+$gantt-info-light: #60a5fa;
+
+// Neutral Colors
+$gantt-dark: #0f172a;
+$gantt-dark-alt: #1e293b;
+$gantt-gray-900: #111827;
+$gantt-gray-800: #1f2937;
+$gantt-gray-700: #374151;
+$gantt-gray-600: #4b5563;
+$gantt-gray-500: #6b7280;
+$gantt-gray-400: #9ca3af;
+$gantt-gray-300: #d1d5db;
+$gantt-gray-200: #e5e7eb;
+$gantt-gray-100: #f3f4f6;
+$gantt-gray-50: #f9fafb;
+$gantt-white: #ffffff;
+
+// Gradient Definitions
+$gradient-primary: linear-gradient(
+  135deg,
+  $gantt-primary 0%,
+  $gantt-primary-dark 100%
+);
+$gradient-accent: linear-gradient(
+  135deg,
+  $gantt-accent 0%,
+  $gantt-primary 100%
+);
+$gradient-success: linear-gradient(
+  135deg,
+  $gantt-success 0%,
+  $gantt-accent 100%
+);
+$gradient-warning: linear-gradient(135deg, $gantt-warning 0%, #ea580c 100%);
+$gradient-danger: linear-gradient(135deg, $gantt-danger 0%, #dc2626 100%);
+$gradient-dark: linear-gradient(180deg, $gantt-dark 0%, $gantt-dark-alt 100%);
+$gradient-header: linear-gradient(
+  135deg,
+  rgba($gantt-gray-50, 0.95) 0%,
+  rgba($gantt-white, 0.9) 100%
+);
+$gradient-glass: linear-gradient(
+  135deg,
+  rgba(255, 255, 255, 0.1) 0%,
+  rgba(255, 255, 255, 0.05) 100%
+);
+$gradient-shimmer: linear-gradient(
+  90deg,
+  transparent 0%,
+  rgba(255, 255, 255, 0.4) 50%,
+  transparent 100%
+);
+
+// Shadow Definitions
+$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-glow-primary: 0 0 20px $gantt-primary-glow,
+  0 0 40px rgba($gantt-primary, 0.2);
+$shadow-glow-accent: 0 0 20px rgba($gantt-accent, 0.4);
+$shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+
+// Border Definitions
+$border-default: 1px solid $gantt-gray-200;
+$border-light: 1px solid rgba($gantt-gray-200, 0.5);
+$border-glass: 1px solid rgba(255, 255, 255, 0.18);
+$border-radius-sm: 6px;
+$border-radius-md: 10px;
+$border-radius-lg: 14px;
+$border-radius-xl: 20px;
+$border-radius-full: 9999px;
+
+// Typography
+$font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, sans-serif;
+$font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+
+// Transitions & Animations
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+$transition-spring: 600ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎬 KEYFRAME ANIMATIONS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px $gantt-primary-glow;
+  }
+  50% {
+    box-shadow: 0 0 20px $gantt-primary-glow, 0 0 30px rgba($gantt-primary, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes borderGlow {
+  0%,
+  100% {
+    border-color: rgba($gantt-primary, 0.5);
+  }
+  50% {
+    border-color: $gantt-primary;
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🧩 UTILITY MIXINS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@mixin glass-effect($blur: 12px, $bg-opacity: 0.1) {
+  background: rgba(255, 255, 255, $bg-opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: $border-glass;
+}
+
+@mixin glass-dark($blur: 12px, $bg-opacity: 0.8) {
+  background: rgba($gantt-dark, $bg-opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@mixin hover-lift($y: -3px, $shadow: $shadow-lg) {
+  transition: transform $transition-base, box-shadow $transition-base;
+  &:hover {
+    transform: translateY($y);
+    box-shadow: $shadow;
+  }
+}
+
+@mixin button-press {
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@mixin focus-ring($color: $gantt-primary) {
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($color, 0.3);
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($color, 0.4);
+  }
+}
+
+@mixin shimmer-effect {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $gradient-shimmer;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity $transition-base;
+  }
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+@mixin ripple-effect {
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  &:active::before {
+    animation: ripple 0.6s ease-out;
+  }
+}
+
+@mixin text-gradient($gradient) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@mixin scrollbar-custom(
+  $thumb-color: $gantt-gray-400,
+  $track-color: $gantt-gray-100
+) {
+  scrollbar-width: thin;
+  scrollbar-color: $thumb-color $track-color;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: $border-radius-sm;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $border-radius-sm;
+    border: 2px solid $track-color;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎯 MAIN GANTT VIEW CONTAINER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 .o_gantt_view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(180deg, $gantt-gray-50 0%, $gantt-white 100%);
+  font-family: $font-family;
+  animation: fadeIn 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle background pattern
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(
+        circle at 25% 25%,
+        rgba($gantt-primary, 0.03) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 75% 75%,
+        rgba($gantt-accent, 0.03) 0%,
+        transparent 50%
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 📌 HEADER SECTION
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  .o_gantt_controller_header {
     display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: $border-light;
+    flex-shrink: 0;
+    background: $gradient-header;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: $shadow-sm;
+    position: relative;
+    z-index: 100;
+    animation: slideInUp 0.4s ease-out;
 
-    // Header section
-    .o_gantt_controller_header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        border-bottom: 1px solid #dee2e6;
-        flex-shrink: 0;
-        background: #f8f9fa;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-        .o_gantt_controller_buttons {
-            display: flex;
-            gap: 8px;
-
-            .btn {
-                font-size: 13px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-
-                &:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }
-
-                i {
-                    margin-right: 4px;
-                }
-            }
-        }
-
-        .o_gantt_controller_scales {
-            .btn {
-                min-width: 60px;
-                font-size: 12px;
-                transition: all 0.2s ease;
-
-                &.btn-primary {
-                    background: #714B67;
-                    border-color: #714B67;
-
-                    &:hover {
-                        background: #5a3c52;
-                        border-color: #5a3c52;
-                    }
-                }
-            }
-        }
-
-        .o_gantt_controller_groupby {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-
-            label {
-                font-size: 13px;
-                font-weight: 500;
-                white-space: nowrap;
-            }
-
-            select {
-                font-size: 13px;
-                min-width: 120px;
-                cursor: pointer;
-                transition: border-color 0.2s ease;
-
-                &:hover {
-                    border-color: #714B67;
-                }
-
-                &:focus {
-                    border-color: #714B67;
-                    box-shadow: 0 0 0 0.2rem rgba(113, 75, 103, 0.25);
-                }
-            }
-        }
+    // Animated gradient border at bottom
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        $gantt-primary,
+        $gantt-accent,
+        $gantt-success,
+        $gantt-primary
+      );
+      background-size: 300% 100%;
+      animation: gradientShift 8s ease infinite;
+      opacity: 0.6;
     }
 
-    // Footer section
-    .o_gantt_footer {
-        flex-shrink: 0;
-        padding: 8px 16px;
-        border-top: 1px solid #dee2e6;
-        background: #f8f9fa;
-        font-size: 12px;
+    // Button Toolbar
+    .o_gantt_controller_buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      animation: slideInLeft 0.5s ease-out;
 
-        .fa-info-circle {
-            color: #17a2b8;
-            margin-right: 4px;
-        }
-
-        strong {
-            color: #714B67;
-        }
-    }
-
-    // Renderer wrapper
-    .o_gantt_renderer_wrapper {
-        flex-grow: 1;
+      .btn {
+        font-size: 13px;
+        font-weight: 600;
+        transition: all $transition-base;
+        border-radius: $border-radius-md;
+        padding: 8px 14px;
         position: relative;
         overflow: hidden;
-        cursor: default;
-        background: #fff;
-
-        &:active {
-            cursor: grabbing;
-        }
-    }
-
-    .o_gantt_renderer_container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        user-select: none;
-    }
-
-    canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-        image-rendering: crisp-edges;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: -webkit-optimize-contrast;
-    }
-
-    // Tooltip
-    .o_gantt_tooltip {
-        position: absolute;
-        background: rgba(0, 0, 0, 0.85);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        line-height: 1.5;
-        pointer-events: none;
-        white-space: pre-line;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(4px);
-        max-width: 300px;
-        word-wrap: break-word;
-
-        &::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: 8px;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.85);
-            transform: rotate(45deg);
-        }
-    }
-
-    // Loading spinner
-    .spinner-border {
-        width: 3rem;
-        height: 3rem;
-        border-width: 0.3em;
-    }
-
-    // Responsive adjustments
-    @media (max-width: 768px) {
-        .o_gantt_controller_header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: stretch;
-
-            .o_gantt_controller_buttons,
-            .o_gantt_controller_scales,
-            .o_gantt_controller_groupby {
-                justify-content: center;
-            }
-        }
-
-        .o_gantt_footer {
-            flex-direction: column;
-            gap: 8px;
-            text-align: center;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .o_gantt_controller_header {
-            padding: 8px;
-
-            .btn {
-                font-size: 11px;
-                padding: 4px 8px;
-            }
-
-            select {
-                font-size: 11px;
-            }
-        }
-
-        .o_gantt_footer {
-            font-size: 11px;
-            padding: 6px 8px;
-        }
-    }
-}
-
-// Scrollbar styling
-.o_gantt_renderer_container {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e0 #f7fafc;
-
-    &::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: #f7fafc;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 4px;
-        transition: background 0.2s ease;
+        letter-spacing: 0.3px;
+        @include button-press;
+        @include ripple-effect;
+        @include focus-ring;
 
         &:hover {
-            background: #a0aec0;
+          transform: translateY(-2px);
         }
+
+        i {
+          margin-right: 5px;
+          transition: transform $transition-base;
+        }
+
+        &:hover i {
+          transform: scale(1.1);
+        }
+
+        // Primary Button (New Task)
+        &.btn-primary {
+          background: $gradient-primary;
+          border: none;
+          color: $gantt-white;
+          box-shadow: 0 4px 14px rgba($gantt-primary, 0.35);
+
+          &:hover {
+            box-shadow: $shadow-glow-primary;
+            background: linear-gradient(
+              135deg,
+              $gantt-primary-light 0%,
+              $gantt-primary 100%
+            );
+          }
+
+          &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.2),
+              transparent
+            );
+            transition: left 0.5s ease;
+          }
+
+          &:hover::before {
+            left: 100%;
+          }
+        }
+
+        // Outline Secondary
+        &.btn-outline-secondary {
+          background: rgba($gantt-white, 0.8);
+          border: 1px solid $gantt-gray-300;
+          color: $gantt-gray-700;
+          backdrop-filter: blur(4px);
+
+          &:hover {
+            background: $gantt-white;
+            border-color: $gantt-primary;
+            color: $gantt-primary;
+            box-shadow: $shadow-md;
+          }
+        }
+      }
+
+      // Color Picker Dropdown
+      .dropdown {
+        .dropdown-toggle {
+          &::after {
+            transition: transform $transition-base;
+          }
+
+          &[aria-expanded="true"]::after {
+            transform: rotate(180deg);
+          }
+        }
+
+        .dropdown-menu {
+          border: none;
+          border-radius: $border-radius-lg;
+          box-shadow: $shadow-2xl;
+          padding: 16px;
+          min-width: 240px;
+          background: $gantt-white;
+          animation: bounceIn 0.3s ease-out;
+
+          .dropdown-header {
+            font-weight: 700;
+            color: $gantt-gray-800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+          }
+
+          // Color swatches
+          li.d-flex {
+            gap: 8px !important;
+
+            button {
+              width: 36px !important;
+              height: 36px !important;
+              border-radius: $border-radius-md !important;
+              border: 2px solid transparent !important;
+              transition: all $transition-base !important;
+              position: relative;
+              overflow: hidden;
+
+              &::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                  135deg,
+                  rgba(255, 255, 255, 0.3) 0%,
+                  transparent 100%
+                );
+                opacity: 0;
+                transition: opacity $transition-fast;
+              }
+
+              &:hover {
+                transform: scale(1.15) rotate(5deg);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                border-color: $gantt-white !important;
+
+                &::after {
+                  opacity: 1;
+                }
+              }
+
+              &:active {
+                transform: scale(0.95);
+              }
+            }
+          }
+
+          .dropdown-divider {
+            border-color: $gantt-gray-200;
+            margin: 12px 0;
+          }
+
+          .small.text-muted {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px;
+            background: $gantt-gray-50;
+            border-radius: $border-radius-sm;
+            font-size: 11px;
+
+            i {
+              color: $gantt-primary;
+            }
+          }
+        }
+      }
+
+      // Search Input Group
+      .input-group {
+        border-radius: $border-radius-md;
+        overflow: hidden;
+        box-shadow: $shadow-inner;
+        transition: all $transition-base;
+        background: $gantt-white;
+
+        &:focus-within {
+          box-shadow: 0 0 0 3px rgba($gantt-primary, 0.2), $shadow-inner;
+        }
+
+        .input-group-text {
+          background: transparent;
+          border: none;
+          padding-left: 12px;
+
+          i {
+            transition: color $transition-base;
+          }
+        }
+
+        input {
+          border: none;
+          background: transparent;
+          font-size: 13px;
+
+          &::placeholder {
+            color: $gantt-gray-400;
+            transition: color $transition-fast;
+          }
+
+          &:focus {
+            box-shadow: none;
+
+            &::placeholder {
+              color: $gantt-gray-300;
+            }
+          }
+        }
+
+        &:focus-within {
+          .input-group-text i {
+            color: $gantt-primary;
+          }
+        }
+
+        // Clear button
+        button {
+          border: none;
+          background: transparent;
+          color: $gantt-gray-500;
+          transition: all $transition-fast;
+
+          &:hover {
+            color: $gantt-danger;
+            background: rgba($gantt-danger, 0.1);
+          }
+        }
+      }
+
+      // Date Range Filter Buttons
+      .btn-group {
+        border-radius: $border-radius-md;
+        overflow: hidden;
+        box-shadow: $shadow-xs;
+
+        .btn-outline-info {
+          border-color: $gantt-gray-300;
+          color: $gantt-gray-600;
+          background: $gantt-white;
+          font-weight: 500;
+          transition: all $transition-base;
+
+          &:hover {
+            background: rgba($gantt-info, 0.1);
+            border-color: $gantt-info;
+            color: $gantt-info;
+            z-index: 2;
+          }
+
+          &.active,
+          &:active {
+            background: $gantt-info;
+            border-color: $gantt-info;
+            color: $gantt-white;
+          }
+        }
+      }
     }
+
+    // Scale Buttons (Week/Month/Year)
+    .o_gantt_controller_scales {
+      animation: fadeInScale 0.5s ease-out 0.1s both;
+
+      .btn-group {
+        border-radius: $border-radius-md;
+        overflow: hidden;
+        box-shadow: $shadow-sm;
+        background: $gantt-white;
+        padding: 3px;
+        gap: 3px;
+      }
+
+      .btn {
+        min-width: 65px;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all $transition-base;
+        border-radius: $border-radius-sm !important;
+        border: none;
+        position: relative;
+
+        &.btn-primary {
+          background: $gradient-primary;
+          color: $gantt-white;
+          box-shadow: $shadow-sm;
+
+          &:hover {
+            box-shadow: $shadow-md;
+          }
+        }
+
+        &.btn-outline-secondary {
+          background: transparent;
+          color: $gantt-gray-600;
+
+          &:hover {
+            background: rgba($gantt-primary, 0.08);
+            color: $gantt-primary;
+          }
+        }
+      }
+    }
+
+    // Navigation Buttons (Prev/Today/Next)
+    .o_gantt_controller_nav {
+      animation: fadeInScale 0.5s ease-out 0.2s both;
+
+      .btn-group {
+        border-radius: $border-radius-md;
+        overflow: visible;
+        box-shadow: $shadow-sm;
+        background: $gantt-white;
+        padding: 3px;
+        gap: 3px;
+      }
+
+      .btn {
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: $border-radius-sm !important;
+        border: none;
+        transition: all $transition-base;
+        @include button-press;
+
+        &.btn-outline-secondary {
+          background: transparent;
+          color: $gantt-gray-600;
+
+          &:hover {
+            background: rgba($gantt-primary, 0.08);
+            color: $gantt-primary;
+
+            i {
+              animation: float 1s ease-in-out infinite;
+            }
+          }
+        }
+
+        // Today Button - Special styling
+        &.btn-info {
+          background: $gradient-accent;
+          color: $gantt-white;
+          box-shadow: 0 2px 8px rgba($gantt-accent, 0.3);
+          position: relative;
+          overflow: hidden;
+
+          &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(
+              circle,
+              rgba(255, 255, 255, 0.3) 0%,
+              transparent 70%
+            );
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform $transition-base;
+          }
+
+          &:hover {
+            box-shadow: $shadow-glow-accent;
+            transform: scale(1.05);
+
+            &::before {
+              transform: translate(-50%, -50%) scale(1);
+            }
+          }
+        }
+
+        i {
+          font-size: 11px;
+          transition: transform $transition-fast;
+        }
+      }
+    }
+
+    // Mode Toggle (View Only / Edit Mode)
+    .o_gantt_controller_mode {
+      animation: slideInRight 0.5s ease-out 0.3s both;
+
+      .btn {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: $border-radius-md;
+        transition: all $transition-base;
+        position: relative;
+        overflow: hidden;
+        @include button-press;
+
+        i {
+          font-size: 12px;
+          transition: transform $transition-bounce;
+        }
+
+        // View Only Mode (Safe/Green)
+        &.btn-outline-success {
+          border: 2px solid $gantt-success;
+          color: $gantt-success;
+          background: transparent;
+          box-shadow: none;
+
+          &:hover {
+            background: $gantt-success;
+            color: $gantt-white;
+            box-shadow: 0 4px 14px rgba($gantt-success, 0.35);
+
+            i {
+              transform: rotate(-10deg);
+            }
+          }
+        }
+
+        // Edit Mode (Warning/Orange)
+        &.btn-warning {
+          background: $gradient-warning;
+          border: none;
+          color: $gantt-dark;
+          animation: pulseGlow 2s ease-in-out infinite;
+
+          &:hover {
+            transform: scale(1.02);
+
+            i {
+              transform: rotate(10deg) scale(1.2);
+            }
+          }
+
+          // Animated border
+          &::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(
+              45deg,
+              $gantt-warning,
+              $gantt-danger,
+              $gantt-warning,
+              $gantt-danger
+            );
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0.5;
+          }
+        }
+      }
+    }
+
+    // Group By Dropdown
+    .o_gantt_controller_groupby {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideInRight 0.5s ease-out 0.4s both;
+
+      label {
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        color: $gantt-gray-500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      select {
+        font-size: 13px;
+        min-width: 130px;
+        cursor: pointer;
+        transition: all $transition-base;
+        border-radius: $border-radius-md;
+        padding: 8px 12px;
+        border: 1px solid $gantt-gray-300;
+        background: $gantt-white;
+        font-weight: 500;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+        @include focus-ring;
+
+        &:hover {
+          border-color: $gantt-primary;
+          box-shadow: $shadow-sm;
+        }
+
+        &:focus {
+          border-color: $gantt-primary;
+        }
+      }
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🖼️ RENDERER WRAPPER
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  .o_gantt_renderer_wrapper {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    background: linear-gradient(180deg, $gantt-white 0%, $gantt-gray-50 100%);
+    z-index: 1;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    // Loading State
+    .spinner-border {
+      width: 48px;
+      height: 48px;
+      border-width: 4px;
+      color: $gantt-primary !important;
+      animation: spin 1s linear infinite;
+    }
+
+    .text-muted {
+      font-size: 14px;
+      color: $gantt-gray-500;
+      margin-top: 12px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  }
+
+  .o_gantt_renderer_container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    @include scrollbar-custom;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 💬 TOOLTIP
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  .o_gantt_tooltip {
+    position: absolute;
+    @include glass-dark(16px, 0.92);
+    color: $gantt-white;
+    padding: 14px 18px;
+    border-radius: $border-radius-lg;
+    font-size: 12px;
+    line-height: 1.6;
+    pointer-events: none;
+    white-space: pre-line;
+    z-index: 1000;
+    box-shadow: $shadow-2xl;
+    max-width: 320px;
+    word-wrap: break-word;
+    animation: tooltipFadeIn 0.2s ease-out;
+
+    // Gradient accent line
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, $gantt-primary, $gantt-accent);
+      border-radius: $border-radius-lg $border-radius-lg 0 0;
+    }
+
+    // Inner glow effect
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        transparent 50%
+      );
+      pointer-events: none;
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 📊 FOOTER SECTION
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  .o_gantt_footer {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-top: $border-light;
+    background: $gradient-header;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 12px;
+    position: relative;
+    z-index: 100;
+    animation: slideInUp 0.4s ease-out 0.2s both;
+
+    .d-flex {
+      gap: 12px;
+    }
+
+    // Keyboard Shortcuts Section
+    .text-muted {
+      font-size: 11px;
+      color: $gantt-gray-500;
+
+      strong {
+        color: $gantt-gray-700;
+        font-weight: 700;
+      }
+    }
+
+    // Badge Styles
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: $border-radius-full;
+      transition: all $transition-base;
+      letter-spacing: 0.3px;
+
+      &.bg-light {
+        background: $gantt-white !important;
+        border: 1px solid $gantt-gray-200 !important;
+        color: $gantt-gray-700 !important;
+        box-shadow: $shadow-xs;
+
+        &:hover {
+          background: $gantt-gray-100 !important;
+          transform: translateY(-1px);
+        }
+      }
+
+      &.bg-warning {
+        background: $gradient-warning !important;
+        border: none !important;
+        color: $gantt-dark !important;
+        animation: pulseGlow 2s ease-in-out infinite;
+      }
+
+      &.bg-info {
+        background: $gradient-accent !important;
+        border: none !important;
+        color: $gantt-white !important;
+        box-shadow: 0 2px 8px rgba($gantt-accent, 0.3);
+      }
+
+      &.bg-primary {
+        background: $gradient-primary !important;
+        border: none !important;
+        color: $gantt-white !important;
+        box-shadow: 0 2px 8px rgba($gantt-primary, 0.3);
+      }
+
+      i {
+        font-size: 10px;
+        transition: transform $transition-fast;
+      }
+
+      &:hover i {
+        transform: scale(1.15);
+      }
+    }
+
+    // Separator
+    .mx-1 {
+      color: $gantt-gray-300;
+    }
+
+    .fa-mouse-pointer {
+      color: $gantt-primary;
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 📱 RESPONSIVE DESIGN
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  @media (max-width: 1200px) {
+    .o_gantt_controller_header {
+      padding: 12px 16px;
+
+      > div {
+        gap: 12px !important;
+      }
+
+      .o_gantt_controller_buttons {
+        .input-group {
+          width: 160px !important;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 992px) {
+    .o_gantt_controller_header {
+      padding: 10px 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      > div {
+        flex-wrap: wrap;
+        gap: 8px !important;
+      }
+
+      .o_gantt_controller_buttons,
+      .o_gantt_controller_scales,
+      .o_gantt_controller_nav,
+      .o_gantt_controller_mode,
+      .o_gantt_controller_groupby {
+        flex: 0 0 auto;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .o_gantt_controller_header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      padding: 12px;
+
+      &::after {
+        height: 3px;
+      }
+
+      .o_gantt_controller_buttons,
+      .o_gantt_controller_scales,
+      .o_gantt_controller_nav,
+      .o_gantt_controller_mode,
+      .o_gantt_controller_groupby {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .o_gantt_controller_buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+
+        .input-group {
+          width: 100% !important;
+          max-width: 300px;
+        }
+      }
+
+      .o_gantt_controller_groupby {
+        justify-content: center;
+
+        select {
+          flex-grow: 1;
+          max-width: 200px;
+        }
+      }
+    }
+
+    .o_gantt_footer {
+      padding: 10px 12px;
+
+      .d-flex {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        align-items: center;
+      }
+
+      .text-muted {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .badge {
+        font-size: 9px;
+        padding: 4px 8px;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .o_gantt_controller_header {
+      padding: 10px;
+
+      .btn {
+        font-size: 11px !important;
+        padding: 6px 10px !important;
+      }
+
+      select {
+        font-size: 11px !important;
+        padding: 6px 10px !important;
+      }
+
+      .o_gantt_controller_scales .btn,
+      .o_gantt_controller_nav .btn {
+        min-width: 50px !important;
+        font-size: 10px !important;
+      }
+    }
+
+    .o_gantt_footer {
+      font-size: 10px;
+      padding: 8px 10px;
+
+      .badge {
+        font-size: 9px;
+        padding: 3px 6px;
+      }
+    }
+  }
 }
 
-// Animation for loading
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🖨️ PRINT STYLES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-.o_gantt_view {
-    animation: fadeIn 0.3s ease-out;
-}
-
-// Print styles
 @media print {
-    .o_gantt_view {
-        .o_gantt_controller_header,
-        .o_gantt_footer {
-            display: none;
+  .o_gantt_view {
+    animation: none;
+
+    &::before {
+      display: none;
+    }
+
+    .o_gantt_controller_header,
+    .o_gantt_footer {
+      display: none;
+    }
+
+    .o_gantt_renderer_wrapper {
+      height: auto;
+      page-break-inside: avoid;
+      background: white;
+    }
+
+    .o_gantt_tooltip {
+      display: none !important;
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🌙 DARK MODE SUPPORT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@media (prefers-color-scheme: dark) {
+  .o_gantt_view {
+    background: $gradient-dark;
+
+    &::before {
+      background-image: radial-gradient(
+          circle at 25% 25%,
+          rgba($gantt-primary, 0.08) 0%,
+          transparent 50%
+        ),
+        radial-gradient(
+          circle at 75% 75%,
+          rgba($gantt-accent, 0.08) 0%,
+          transparent 50%
+        );
+    }
+
+    .o_gantt_controller_header,
+    .o_gantt_footer {
+      background: rgba($gantt-dark-alt, 0.95);
+      backdrop-filter: blur(12px);
+      border-color: rgba(255, 255, 255, 0.1);
+
+      &::after {
+        opacity: 0.8;
+      }
+    }
+
+    .o_gantt_controller_header {
+      .btn.btn-outline-secondary {
+        background: rgba($gantt-gray-800, 0.8);
+        border-color: $gantt-gray-700;
+        color: $gantt-gray-300;
+
+        &:hover {
+          background: $gantt-gray-700;
+          border-color: $gantt-primary;
+          color: $gantt-white;
+        }
+      }
+
+      .input-group {
+        background: $gantt-gray-800;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+
+        input {
+          color: $gantt-white;
+
+          &::placeholder {
+            color: $gantt-gray-500;
+          }
+        }
+      }
+
+      select {
+        background: $gantt-gray-800;
+        border-color: $gantt-gray-700;
+        color: $gantt-gray-200;
+      }
+
+      label {
+        color: $gantt-gray-400;
+      }
+
+      .dropdown-menu {
+        background: $gantt-gray-800;
+        border: 1px solid $gantt-gray-700;
+
+        .dropdown-header {
+          color: $gantt-gray-300;
         }
 
-        .o_gantt_renderer_wrapper {
-            height: auto;
-            page-break-inside: avoid;
+        .small.text-muted {
+          background: $gantt-gray-900;
+          color: $gantt-gray-400;
         }
+
+        .dropdown-divider {
+          border-color: $gantt-gray-700;
+        }
+      }
+
+      .o_gantt_controller_scales,
+      .o_gantt_controller_nav {
+        .btn-group {
+          background: $gantt-gray-800;
+        }
+      }
     }
+
+    .o_gantt_renderer_wrapper {
+      background: linear-gradient(180deg, $gantt-dark 0%, $gantt-dark-alt 100%);
+    }
+
+    .o_gantt_footer {
+      .text-muted {
+        color: $gantt-gray-400;
+
+        strong {
+          color: $gantt-gray-200;
+        }
+      }
+
+      .badge.bg-light {
+        background: $gantt-gray-700 !important;
+        border-color: $gantt-gray-600 !important;
+        color: $gantt-gray-200 !important;
+      }
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ✨ ACCESSIBILITY ENHANCEMENTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@media (prefers-reduced-motion: reduce) {
+  .o_gantt_view,
+  .o_gantt_view * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// High Contrast Mode
+@media (prefers-contrast: high) {
+  .o_gantt_view {
+    .btn {
+      border-width: 2px;
+    }
+
+    .badge {
+      border: 2px solid currentColor;
+    }
+
+    .o_gantt_tooltip {
+      border: 2px solid $gantt-white;
+    }
+  }
 }

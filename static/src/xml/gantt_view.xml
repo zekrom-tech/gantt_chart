@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="project_task_gantt.GanttView" owl="1">
+    <t t-name="gantt_chart.GanttView" owl="1">
         <Layout viewType="'gantt'" display="props.display">
             <t t-set-slot="layout-buttons">
                 <button class="btn btn-primary" t-on-click="() => this.env.controller.createTask()">
@@ -14,117 +14,319 @@
         </Layout>
     </t>
 
-    <t t-name="project_task_gantt.GanttController" owl="1">
+    <t t-name="gantt_chart.GanttController" owl="1">
         <div class="o_gantt_view h-100 d-flex flex-column">
+            <!-- Enhanced Header Section -->
             <div class="o_gantt_controller_header border-bottom p-2 bg-view">
                 <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <!-- Left: Action Buttons -->
                     <div class="o_gantt_controller_buttons btn-toolbar gap-1">
-                        <button class="btn btn-primary btn-sm" t-on-click="() => this.createTask()" title="Create New Task">
-                            <i class="fa fa-plus"/> New
+                        <!-- New Task Button -->
+                        <button class="btn btn-primary btn-sm" t-on-click="() => this.createTask()" title="Create New Task (Ctrl+N)">
+                            <i class="fa fa-plus-circle"/> 
+                            <span class="d-none d-sm-inline">New Task</span>
+                            <span class="d-inline d-sm-none">New</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" t-on-click="() => this.refresh()" title="Refresh Data">
-                            <i class="fa fa-refresh"/> Refresh
+                        
+                        <!-- Refresh Button -->
+                        <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.refresh()" title="Refresh Data (F5)">
+                            <i class="fa fa-refresh"/>
                         </button>
-                        <button class="btn btn-secondary btn-sm" t-on-click="() => this.exportToCSV()" title="Export to CSV">
-                            <i class="fa fa-download"/> Export
+                        
+                        <!-- Export Button -->
+                        <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.exportToCSV()" title="Export to CSV">
+                            <i class="fa fa-download"/>
+                            <span class="d-none d-md-inline ms-1">Export</span>
                         </button>
+                        
+                        <!-- Color Picker Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Set Task Color - Click a task first to select it">
+                                <i class="fa fa-palette"/>
+                                <span class="d-none d-lg-inline ms-1">Color</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
+                                <li class="dropdown-header small text-muted mb-2">
+                                    <i class="fa fa-paint-brush me-1"/> Select Task Color
+                                </li>
+                                <li class="d-flex flex-wrap gap-2 px-1 pb-2">
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #875a7b 0%, #714B67 100%);" 
+                                            t-on-click="() => this.setTaskColor(0)" 
+                                            title="Purple"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #f06050 0%, #dc3545 100%);" 
+                                            t-on-click="() => this.setTaskColor(1)" 
+                                            title="Red"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #f4a460 0%, #e67e22 100%);" 
+                                            t-on-click="() => this.setTaskColor(2)" 
+                                            title="Orange"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #6cc1ed 0%, #3498db 100%);" 
+                                            t-on-click="() => this.setTaskColor(3)" 
+                                            title="Blue"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #d6145f 0%, #c0392b 100%);" 
+                                            t-on-click="() => this.setTaskColor(4)" 
+                                            title="Pink"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #30c381 0%, #27ae60 100%);" 
+                                            t-on-click="() => this.setTaskColor(5)" 
+                                            title="Green"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #9c27b0 0%, #8e44ad 100%);" 
+                                            t-on-click="() => this.setTaskColor(6)" 
+                                            title="Violet"></button>
+                                    <button class="btn p-0 border-0 rounded-circle gantt-color-swatch" 
+                                            style="width: 32px; height: 32px; background: linear-gradient(135deg, #ff9800 0%, #f39c12 100%);" 
+                                            t-on-click="() => this.setTaskColor(7)" 
+                                            title="Amber"></button>
+                                </li>
+                                <li><hr class="dropdown-divider my-2"/></li>
+                                <li class="px-2 small text-muted d-flex align-items-center gap-2 py-1">
+                                    <i class="fa fa-info-circle text-primary"/>
+                                    <span>Click a task to select, then choose color</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div class="vr mx-1 d-none d-md-block" style="height: 24px; opacity: 0.3;"/>
+                        
+                        <!-- Search Input -->
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fa fa-search text-muted"/>
+                            </span>
+                            <input type="text" 
+                                class="form-control border-start-0 ps-0" 
+                                placeholder="Search tasks..." 
+                                t-att-value="state.searchQuery || ''"
+                                t-on-input="(ev) => this.onSearchInput(ev)"
+                                t-on-keydown="(ev) => ev.key === 'Escape' &amp;&amp; this.clearSearch()"/>
+                            <button t-if="state.searchQuery" 
+                                class="btn btn-outline-secondary border-start-0" 
+                                t-on-click="() => this.clearSearch()" 
+                                title="Clear search (Esc)">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div class="vr mx-1 d-none d-lg-block" style="height: 24px; opacity: 0.3;"/>
+                        
+                        <!-- Date Range Quick Filters -->
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Date range filters">
+                            <button t-attf-class="btn btn-sm {{ state.dateRangeFilter === 'week' ? 'btn-info' : 'btn-outline-info' }}" 
+                                    t-on-click="() => this.setDateRange('week')" 
+                                    title="Show This Week">
+                                <i class="fa fa-calendar-o d-md-none"/>
+                                <span class="d-none d-md-inline">Week</span>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ state.dateRangeFilter === 'month' ? 'btn-info' : 'btn-outline-info' }}" 
+                                    t-on-click="() => this.setDateRange('month')" 
+                                    title="Show This Month">
+                                <span class="d-none d-md-inline">Month</span>
+                                <i class="fa fa-calendar d-md-none"/>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ state.dateRangeFilter === 'quarter' ? 'btn-info' : 'btn-outline-info' }}" 
+                                    t-on-click="() => this.setDateRange('quarter')" 
+                                    title="Show This Quarter">
+                                <span class="d-none d-md-inline">Quarter</span>
+                                <i class="fa fa-calendar-check-o d-md-none"/>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ state.dateRangeFilter === 'all' ? 'btn-secondary' : 'btn-outline-secondary' }}" 
+                                    t-on-click="() => this.setDateRange('all')" 
+                                    title="Show All Tasks">
+                                <span class="d-none d-md-inline">All</span>
+                                <i class="fa fa-list d-md-none"/>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="o_gantt_controller_scales btn-group btn-group-sm" role="group">
+                    <!-- Center: Scale Buttons -->
+                    <div class="o_gantt_controller_scales btn-group btn-group-sm" role="group" aria-label="Timeline scale">
                         <button 
                             t-attf-class="btn btn-sm {{ state.scale === 'week' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                             t-on-click="() => this.onScaleChange('week')"
-                            title="Week View">
-                            Week
+                            title="Week View - Show weekly timeline">
+                            <i class="fa fa-calendar-minus-o me-1 d-none d-lg-inline"/>Week
                         </button>
                         <button 
                             t-attf-class="btn btn-sm {{ state.scale === 'month' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                             t-on-click="() => this.onScaleChange('month')"
-                            title="Month View">
-                            Month
+                            title="Month View - Show daily timeline">
+                            <i class="fa fa-calendar me-1 d-none d-lg-inline"/>Month
                         </button>
                         <button 
                             t-attf-class="btn btn-sm {{ state.scale === 'year' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                             t-on-click="() => this.onScaleChange('year')"
-                            title="Year View">
-                            Year
+                            title="Year View - Show monthly timeline">
+                            <i class="fa fa-calendar-plus-o me-1 d-none d-lg-inline"/>Year
                         </button>
                     </div>
 
-                    <div class="o_gantt_controller_nav btn-group btn-group-sm" role="group">
-                        <button class="btn btn-outline-secondary" t-on-click="() => this.navigate('prev')" title="Previous">
-                            <i class="fa fa-chevron-left"/>
-                        </button>
-                        <button class="btn btn-outline-secondary" t-on-click="() => this.navigate('next')" title="Next">
-                            <i class="fa fa-chevron-right"/>
-                        </button>
-                    </div>
+                    <!-- Right: Navigation & Controls -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Navigation Buttons -->
+                        <div class="o_gantt_controller_nav btn-group btn-group-sm" role="group" aria-label="Timeline navigation">
+                            <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.navigate('prev')" title="Previous Period (←)">
+                                <i class="fa fa-chevron-left"/>
+                            </button>
+                            <button class="btn btn-info btn-sm" t-on-click="() => this.navigate('today')" title="Jump to Today (Home)">
+                                <i class="fa fa-dot-circle-o me-1"/>
+                                <span class="d-none d-sm-inline">Today</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.navigate('next')" title="Next Period (→)">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
 
-                    <div class="o_gantt_controller_mode btn-group btn-group-sm" role="group">
-                        <button 
-                            t-attf-class="btn btn-sm {{ state.editable ? 'btn-outline-secondary' : 'btn-primary' }}" 
-                            t-on-click="() => this.toggleEditable()"
-                            title="Toggle Edit/View Mode">
-                            <t t-esc="state.editable ? 'View Only' : 'Editable'"/>
-                        </button>
-                    </div>
+                        <!-- Mode Toggle Button -->
+                        <div class="o_gantt_controller_mode" role="group">
+                            <button 
+                                t-attf-class="btn btn-sm {{ state.editable ? 'btn-warning' : 'btn-outline-success' }}" 
+                                t-on-click="() => this.toggleEditable()"
+                                t-att-title="state.editable ? 'Edit Mode Active - Click to lock (disable editing)' : 'View Only Mode - Click to unlock (enable editing)'">
+                                <i t-attf-class="fa {{ state.editable ? 'fa-unlock-alt' : 'fa-lock' }} me-1"/>
+                                <t t-if="state.editable">
+                                    <span class="d-none d-sm-inline">Editing</span>
+                                    <span class="d-inline d-sm-none">Edit</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="d-none d-sm-inline">Locked</span>
+                                    <span class="d-inline d-sm-none">View</span>
+                                </t>
+                            </button>
+                        </div>
 
-                    <div class="o_gantt_controller_groupby d-flex align-items-center gap-2">
-                        <label class="text-muted mb-0 small">Group By:</label>
-                        <select 
-                            class="form-select form-select-sm o_input" 
-                            style="width: auto;"
-                            t-on-change="(ev) => this.onGroupByChange(ev)">
-                            <option value="project_id" t-att-selected="state.groupBy === 'project_id'">
-                                Project
-                            </option>
-                            <option value="user_ids" t-att-selected="state.groupBy === 'user_ids'">
-                                Assignee
-                            </option>
-                            <option value="stage_id" t-att-selected="state.groupBy === 'stage_id'">
-                                Stage
-                            </option>
-                            <option value="priority" t-att-selected="state.groupBy === 'priority'">
-                                Priority
-                            </option>
-                        </select>
+                        <!-- Group By Dropdown -->
+                        <div class="o_gantt_controller_groupby d-flex align-items-center gap-2">
+                            <label class="text-muted mb-0 small fw-bold d-none d-lg-block">
+                                <i class="fa fa-object-group me-1"/>Group:
+                            </label>
+                            <select 
+                                class="form-select form-select-sm o_input" 
+                                style="width: auto; min-width: 130px;"
+                                t-on-change="(ev) => this.onGroupByChange(ev)"
+                                title="Group tasks by">
+                                <option value="project_id" t-att-selected="state.groupBy === 'project_id'">
+                                    📁 Project
+                                </option>
+                                <option value="user_ids" t-att-selected="state.groupBy === 'user_ids'">
+                                    👤 Assignee
+                                </option>
+                                <option value="stage_id" t-att-selected="state.groupBy === 'stage_id'">
+                                    📊 Stage
+                                </option>
+                                <option value="priority" t-att-selected="state.groupBy === 'priority'">
+                                    ⭐ Priority
+                                </option>
+                                <option value="deadline_status" t-att-selected="state.groupBy === 'deadline_status'">
+                                    ⏰ Deadline Status
+                                </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Gantt Renderer Wrapper -->
             <div class="o_gantt_renderer_wrapper flex-grow-1 position-relative overflow-hidden">
-                <div t-if="state.isLoading" class="position-absolute top-50 start-50 translate-middle">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                <!-- Loading State -->
+                <div t-if="state.isLoading" class="position-absolute top-50 start-50 translate-middle text-center">
+                    <div class="gantt-loading-container">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 48px; height: 48px; border-width: 4px;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="text-muted small fw-medium">Loading Gantt Chart...</div>
+                        <div class="text-muted smaller mt-1" style="font-size: 11px; opacity: 0.7;">
+                            Preparing your project timeline
+                        </div>
                     </div>
                 </div>
                 
+                <!-- Gantt Renderer Component -->
                 <GanttRenderer
                     t-if="!state.isLoading"
-                    data="state.ganttData"
+                    data="this.renderData"
                     scale="state.scale"
                     editable="state.editable"
+                    searchQuery="state.searchQuery"
                     t-on-task-updated.stop.prevent="(ev) => this.onTaskUpdated(ev)"
                     t-on-task-clicked.stop.prevent="(ev) => this.onTaskClicked(ev)"
+                    t-on-task-selected.stop.prevent="(ev) => this.onTaskSelected(ev)"
                     t-on-scale-change.stop.prevent="(ev) => this.onScaleChange(ev.detail.scale)"
+                    t-on-toggle-group.stop.prevent="(ev) => this.toggleGroupCollapse(ev.detail.groupId)"
                 />
             </div>
 
-            <div class="o_gantt_footer border-top p-2 bg-view small text-muted">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>
-                        <i class="fa fa-info-circle"/> 
-                        <strong>Tip:</strong> Drag tasks to reschedule (in edit mode), double-click to edit (in view mode), wheel to move left or right , Ctrl+Wheel to zoom, Shift+Wheel to move down or up .
-                    </span>
-                    <span>
-                        Total: <strong t-esc="state.ganttData.reduce((acc, g) => acc + g.tasks.length, 0)"/> tasks
-                    </span>
+            <!-- Enhanced Footer -->
+            <div class="o_gantt_footer border-top p-2 bg-view small">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <!-- Keyboard Shortcuts -->
+                    <div class="text-muted d-flex align-items-center flex-wrap gap-1">
+                        <i class="fa fa-keyboard-o text-primary me-1"/>
+                        <strong class="me-1">Shortcuts:</strong>
+                        <span class="badge bg-light text-dark border">
+                            <i class="fa fa-arrows-h me-1"/>Scroll
+                        </span>
+                        <span class="text-muted mx-1 d-none d-md-inline">navigate</span>
+                        <span class="badge bg-light text-dark border">
+                            <i class="fa fa-arrows-v me-1"/>Shift+Scroll
+                        </span>
+                        <span class="text-muted mx-1 d-none d-md-inline">pan</span>
+                        <span class="badge bg-light text-dark border">
+                            <i class="fa fa-search-plus me-1"/>Ctrl+Scroll
+                        </span>
+                        <span class="text-muted mx-1 d-none d-md-inline">zoom</span>
+                        <t t-if="state.editable">
+                            <span class="badge bg-warning text-dark">
+                                <i class="fa fa-hand-pointer-o me-1"/>Drag
+                            </span>
+                            <span class="text-muted mx-1 d-none d-md-inline">to reschedule</span>
+                        </t>
+                    </div>
+                    
+                    <!-- Status Badges -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <!-- Search Active -->
+                        <span t-if="state.searchQuery" class="badge bg-info text-white">
+                            <i class="fa fa-search me-1"/>
+                            "<t t-esc="state.searchQuery"/>"
+                        </span>
+                        
+                        <!-- Date Range Active -->
+                        <span t-if="state.dateRangeFilter !== 'all'" class="badge bg-info text-white">
+                            <i class="fa fa-calendar me-1"/>
+                            <t t-esc="state.dateRangeFilter === 'week' ? 'This Week' : state.dateRangeFilter === 'month' ? 'This Month' : 'This Quarter'"/>
+                        </span>
+                        
+                        <!-- Edit Mode Indicator -->
+                        <span t-if="state.editable" class="badge bg-warning text-dark">
+                            <i class="fa fa-unlock-alt me-1"/>Edit Mode
+                        </span>
+                        
+                        <!-- Task Count -->
+                        <span class="badge bg-primary text-white">
+                            <i class="fa fa-tasks me-1"/>
+                            <t t-esc="this.renderData.reduce((acc, g) => acc + g.tasks.length, 0)"/> tasks
+                        </span>
+                        
+                        <!-- Group Count -->
+                        <span class="badge bg-secondary text-white d-none d-md-inline-flex">
+                            <i class="fa fa-folder-o me-1"/>
+                            <t t-esc="this.renderData.length"/> groups
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
     </t>
 
-    <t t-name="project_task_gantt.GanttRenderer" owl="1">
+    <!-- Gantt Renderer Template -->
+    <t t-name="gantt_chart.GanttRenderer" owl="1">
         <div 
             class="o_gantt_renderer_container w-100 h-100" 
             t-ref="root"
@@ -138,10 +340,11 @@
             <div class="position-relative w-100 h-100" t-ref="ganttContainer">
                 <canvas t-ref="ganttCanvas" class="w-100 h-100"></canvas>
                 
+                <!-- Enhanced Tooltip -->
                 <div 
                     t-if="state.tooltip.visible" 
-                    class="o_gantt_tooltip position-absolute bg-dark text-white rounded p-2 shadow-lg"
-                    t-attf-style="left: {{ state.tooltip.x }}px; top: {{ state.tooltip.y }}px; transform: translate(15px, 15px); pointer-events: none; z-index: 1000; white-space: pre-line; font-size: 12px; line-height: 1.4;">
+                    class="o_gantt_tooltip position-absolute"
+                    t-attf-style="left: {{ state.tooltip.x }}px; top: {{ state.tooltip.y }}px; transform: translate(15px, 15px);">
                     <t t-esc="state.tooltip.content"/>
                 </div>
             </div>

@@ -3,11 +3,12 @@
 import { Component, onMounted, onWillUnmount, useRef, useState, onWillUpdateProps } from "@odoo/owl";
 
 export class GanttRenderer extends Component {
-    static template = "project_task_gantt.GanttRenderer";
+    static template = "gantt_chart.GanttRenderer";
     static props = {
         data: { type: Array },
         scale: { type: String },
         editable: { type: Boolean, optional: true },
+        searchQuery: { type: String, optional: true },
     };
 
     setup() {
@@ -24,6 +25,8 @@ export class GanttRenderer extends Component {
             tooltip: { visible: false, content: '', x: 0, y: 0 },
             hoveredTask: null,
             zoom: 1.0,
+            // Selected task for color picker
+            selectedTaskId: null,
         });
 
         // Base dimensions
@@ -41,27 +44,33 @@ export class GanttRenderer extends Component {
         onMounted(() => {
             this.setupCanvas();
             this.drawGantt();
-            window.addEventListener('resize', this.handleResize.bind(this));
-            // Listen for navigation commands globally
+            
+            // Store bound handlers for proper cleanup
+            this._resizeHandler = this.handleResize.bind(this);
             this._navigateHandler = (e) => this.handleNavigate(e.detail);
+            this._keyHandler = (e) => this.handleKey(e);
+            
+            window.addEventListener('resize', this._resizeHandler);
             window.addEventListener('gantt-navigate', this._navigateHandler);
+            window.addEventListener('keydown', this._keyHandler);
+            
             // Center view on today initially for better UX
             this.centerOnToday();
-            // Keyboard navigation
-            this._keyHandler = (e) => this.handleKey(e);
-            window.addEventListener('keydown', this._keyHandler);
         });
 
         onWillUnmount(() => {
-            window.removeEventListener('resize', this.handleResize.bind(this));
-            if (this.animationFrame) {
-                cancelAnimationFrame(this.animationFrame);
+            // Properly remove event listeners using stored references
+            if (this._resizeHandler) {
+                window.removeEventListener('resize', this._resizeHandler);
             }
             if (this._navigateHandler) {
                 window.removeEventListener('gantt-navigate', this._navigateHandler);
             }
             if (this._keyHandler) {
                 window.removeEventListener('keydown', this._keyHandler);
+            }
+            if (this.animationFrame) {
+                cancelAnimationFrame(this.animationFrame);
             }
         });
 
@@ -160,8 +169,8 @@ export class GanttRenderer extends Component {
 
         // Draw in layers for better visual hierarchy
         this.drawGrid(ctx, dates, data, rect);
-        this.drawTodayMarker(ctx, dates, rect);
         this.drawTasks(ctx, data, dates, rect);
+        this.drawTodayMarker(ctx, dates, rect);  // Draw TODAY marker AFTER tasks so it's on top
         this.drawHeader(ctx, dates, rect);
         this.drawSidebar(ctx, data, rect);
     }
@@ -247,17 +256,21 @@ export class GanttRenderer extends Component {
     }
 
     drawGrid(ctx, dates, data, rect) {
-        ctx.strokeStyle = '#e9e9e9';
-        ctx.lineWidth = 1;
-
         const days = Math.ceil((dates.end - dates.start) / 86400000);
+        const scale = this.props.scale || 'month';
 
         // Vertical grid lines (dates) with scale support
-        const scale = this.props.scale || 'month';
         if (scale === 'day' || scale === 'month') {
             for (let i = 0; i <= days; i++) {
                 const x = this.sidebarWidth + i * this.cellWidth - this.state.scrollX;
                 if (x >= this.sidebarWidth && x <= rect.width) {
+                    // Subtle gradient for vertical lines
+                    const lineGradient = ctx.createLinearGradient(0, this.headerHeight, 0, rect.height);
+                    lineGradient.addColorStop(0, 'rgba(226, 232, 240, 0.8)');
+                    lineGradient.addColorStop(0.5, 'rgba(226, 232, 240, 0.5)');
+                    lineGradient.addColorStop(1, 'rgba(226, 232, 240, 0.2)');
+                    ctx.strokeStyle = lineGradient;
+                    ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(x, this.headerHeight);
                     ctx.lineTo(x, rect.height);
@@ -270,6 +283,8 @@ export class GanttRenderer extends Component {
             while (current <= dates.end) {
                 const x = this.dateToX(current, dates);
                 if (x >= this.sidebarWidth && x <= rect.width) {
+                    ctx.strokeStyle = 'rgba(226, 232, 240, 0.6)';
+                    ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(x, this.headerHeight);
                     ctx.lineTo(x, rect.height);
@@ -282,6 +297,8 @@ export class GanttRenderer extends Component {
             while (current <= dates.end) {
                 const x = this.dateToX(current, dates);
                 if (x >= this.sidebarWidth && x <= rect.width) {
+                    ctx.strokeStyle = 'rgba(226, 232, 240, 0.6)';
+                    ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(x, this.headerHeight);
                     ctx.lineTo(x, rect.height);
@@ -291,11 +308,24 @@ export class GanttRenderer extends Component {
             }
         }
 
-        // Horizontal grid lines (tasks)
+        // Horizontal grid lines (tasks) with subtle styling
         let totalRows = data.reduce((acc, g) => acc + Math.max(g.tasks.length, 1), 0);
         for (let i = 0; i <= totalRows; i++) {
             const y = this.headerHeight + i * this.cellHeight - this.state.scrollY;
             if (y >= this.headerHeight && y <= rect.height) {
+                // Alternate row backgrounds
+                if (i % 2 === 1) {
+                    ctx.fillStyle = 'rgba(248, 250, 252, 0.5)';
+                    ctx.fillRect(this.sidebarWidth, y, rect.width - this.sidebarWidth, this.cellHeight);
+                }
+                
+                // Grid line
+                const hLineGradient = ctx.createLinearGradient(this.sidebarWidth, 0, rect.width, 0);
+                hLineGradient.addColorStop(0, 'rgba(226, 232, 240, 0.6)');
+                hLineGradient.addColorStop(0.5, 'rgba(226, 232, 240, 0.4)');
+                hLineGradient.addColorStop(1, 'rgba(226, 232, 240, 0.2)');
+                ctx.strokeStyle = hLineGradient;
+                ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(this.sidebarWidth, y);
                 ctx.lineTo(rect.width, y);
@@ -312,26 +342,98 @@ export class GanttRenderer extends Component {
             const x = this.dateToX(today, dates);
             if (x >= this.sidebarWidth && x <= rect.width) {
                 ctx.save();
-                ctx.strokeStyle = '#e74c3c';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
+                
+                // Glow effect behind the line
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
+                ctx.lineWidth = 8;
                 ctx.beginPath();
                 ctx.moveTo(x, this.headerHeight);
                 ctx.lineTo(x, rect.height);
                 ctx.stroke();
+                
+                // Secondary glow
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, this.headerHeight);
+                ctx.lineTo(x, rect.height);
+                ctx.stroke();
+                
+                // Main gradient line
+                const todayGradient = ctx.createLinearGradient(0, this.headerHeight, 0, rect.height);
+                todayGradient.addColorStop(0, '#ef4444');
+                todayGradient.addColorStop(0.5, '#f87171');
+                todayGradient.addColorStop(1, '#ef4444');
+                ctx.strokeStyle = todayGradient;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath();
+                ctx.moveTo(x, this.headerHeight);
+                ctx.lineTo(x, rect.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Today indicator badge - positioned in the HEADER area so it's never covered
+                const badgeWidth = 55;
+                const badgeHeight = 22;
+                const badgeX = x - badgeWidth / 2;
+                const badgeY = this.headerHeight - badgeHeight - 8;  // Place ABOVE the grid line, in header
+                
+                // Badge shadow
+                ctx.shadowColor = 'rgba(239, 68, 68, 0.4)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 2;
+                
+                // Badge background with gradient
+                const badgeGradient = ctx.createLinearGradient(badgeX, badgeY, badgeX, badgeY + badgeHeight);
+                badgeGradient.addColorStop(0, '#ef4444');
+                badgeGradient.addColorStop(1, '#dc2626');
+                ctx.fillStyle = badgeGradient;
+                this.roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 10, true, false);
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                
+                // Badge text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 10px Inter, Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('TODAY', x, badgeY + badgeHeight / 2);
+                ctx.textAlign = 'left';
+                
                 ctx.restore();
             }
         }
     }
 
     drawHeader(ctx, dates, rect) {
-        // Background
-        ctx.fillStyle = '#f8f9fa';
+        // Gradient background
+        const headerGradient = ctx.createLinearGradient(0, 0, 0, this.headerHeight);
+        headerGradient.addColorStop(0, '#ffffff');
+        headerGradient.addColorStop(1, '#f8fafc');
+        ctx.fillStyle = headerGradient;
         ctx.fillRect(0, 0, rect.width, this.headerHeight);
         
-        ctx.strokeStyle = '#dee2e6';
+        // Subtle shadow line at bottom
+        ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
-        ctx.strokeRect(0, 0, rect.width, this.headerHeight);
+        ctx.beginPath();
+        ctx.moveTo(0, this.headerHeight);
+        ctx.lineTo(rect.width, this.headerHeight);
+        ctx.stroke();
+        
+        // Gradient accent line
+        const accentGradient = ctx.createLinearGradient(0, 0, rect.width, 0);
+        accentGradient.addColorStop(0, '#6366f1');
+        accentGradient.addColorStop(0.5, '#06b6d4');
+        accentGradient.addColorStop(1, '#10b981');
+        ctx.strokeStyle = accentGradient;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, this.headerHeight - 1);
+        ctx.lineTo(rect.width, this.headerHeight - 1);
+        ctx.stroke();
 
         ctx.save();
         ctx.beginPath();
@@ -339,28 +441,36 @@ export class GanttRenderer extends Component {
         ctx.clip();
 
         // Draw header according to scale
-        ctx.fillStyle = '#495057';
-        ctx.font = 'bold 13px Arial';
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 13px Inter, Arial, sans-serif';
         ctx.textBaseline = 'top';
         const scale = this.props.scale || 'month';
+        
         if (scale === 'day') {
             let current = new Date(dates.start);
             while (current <= dates.end) {
                 const monthX = this.dateToX(new Date(current.getFullYear(), current.getMonth(), 1), dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 13px Inter, Arial, sans-serif';
+                ctx.fillText(monthName, Math.max(this.sidebarWidth + 8, monthX + 8), 12);
                 current.setMonth(current.getMonth() + 1);
             }
-            ctx.font = '11px Arial';
-            ctx.fillStyle = '#6c757d';
+            ctx.font = '11px Inter, Arial, sans-serif';
             let dayCounter = new Date(dates.start);
             const days = Math.ceil((dates.end - dates.start) / 86400000);
             for (let i = 0; i <= days; i++) {
                 const dayX = this.dateToX(dayCounter, dates);
+                const isWeekend = dayCounter.getDay() === 0 || dayCounter.getDay() === 6;
                 const day = dayCounter.getDate();
                 const dayOfWeek = dayCounter.toLocaleDateString('en-US', { weekday: 'short' });
-                ctx.fillText(day.toString(), dayX + 5, 45);
-                ctx.fillText(dayOfWeek, dayX + 5, 60);
+                
+                ctx.fillStyle = isWeekend ? '#ef4444' : '#64748b';
+                ctx.fillText(day.toString(), dayX + 5, 42);
+                ctx.fillStyle = isWeekend ? '#fca5a5' : '#94a3b8';
+                ctx.font = '10px Inter, Arial, sans-serif';
+                ctx.fillText(dayOfWeek, dayX + 5, 58);
+                ctx.font = '11px Inter, Arial, sans-serif';
                 dayCounter.setDate(dayCounter.getDate() + 1);
             }
         } else if (scale === 'week') {
@@ -369,18 +479,20 @@ export class GanttRenderer extends Component {
                 const monthX = this.dateToX(new Date(current.getFullYear(), current.getMonth(), 1), dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
                 if (monthX >= this.sidebarWidth && monthX <= rect.width) {
-                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = 'bold 13px Inter, Arial, sans-serif';
+                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 8, monthX + 8), 12);
                 }
                 current.setMonth(current.getMonth() + 1);
             }
-            ctx.font = '11px Arial';
-            ctx.fillStyle = '#6c757d';
+            ctx.font = '11px Inter, Arial, sans-serif';
+            ctx.fillStyle = '#64748b';
             let weekStart = new Date(dates.start);
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
             while (weekStart <= dates.end) {
                 const weekX = this.dateToX(weekStart, dates);
                 const weekLabel = `W${this.getWeekNumber(weekStart)}`;
-                ctx.fillText(weekLabel, weekX + 5, 50);
+                ctx.fillText(weekLabel, weekX + 5, 48);
                 weekStart.setDate(weekStart.getDate() + 7);
             }
         } else if (scale === 'month') {
@@ -389,24 +501,31 @@ export class GanttRenderer extends Component {
                 const monthX = this.dateToX(new Date(current.getFullYear(), current.getMonth(), 1), dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
                 if (monthX >= this.sidebarWidth && monthX <= rect.width) {
-                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 5, monthX + 5), 15);
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = 'bold 13px Inter, Arial, sans-serif';
+                    ctx.fillText(monthName, Math.max(this.sidebarWidth + 8, monthX + 8), 12);
                 }
                 current.setMonth(current.getMonth() + 1);
             }
-            ctx.font = '11px Arial';
-            ctx.fillStyle = '#6c757d';
+            ctx.font = '11px Inter, Arial, sans-serif';
             let dayCounter = new Date(dates.start);
             const days = Math.ceil((dates.end - dates.start) / 86400000);
             for (let i = 0; i <= days; i++) {
                 const dayX = this.dateToX(dayCounter, dates);
                 const isWeekend = dayCounter.getDay() === 0 || dayCounter.getDay() === 6;
+                
+                // Weekend highlighting with gradient
                 if (isWeekend) {
-                    ctx.fillStyle = '#e9ecef';
+                    const weekendGradient = ctx.createLinearGradient(dayX, this.headerHeight, dayX, rect.height);
+                    weekendGradient.addColorStop(0, 'rgba(241, 245, 249, 0.8)');
+                    weekendGradient.addColorStop(1, 'rgba(241, 245, 249, 0.4)');
+                    ctx.fillStyle = weekendGradient;
                     ctx.fillRect(dayX, this.headerHeight, this.cellWidth, rect.height - this.headerHeight);
-                    ctx.fillStyle = '#6c757d';
                 }
+                
                 const day = dayCounter.getDate();
-                ctx.fillText(day.toString(), dayX + 5, 50);
+                ctx.fillStyle = isWeekend ? '#ef4444' : '#64748b';
+                ctx.fillText(day.toString(), dayX + 5, 48);
                 dayCounter.setDate(dayCounter.getDate() + 1);
             }
         } else if (scale === 'year') {
@@ -414,17 +533,19 @@ export class GanttRenderer extends Component {
             while (currentYear <= dates.end.getFullYear()) {
                 const yearX = this.dateToX(new Date(currentYear, 0, 1), dates);
                 if (yearX >= this.sidebarWidth && yearX <= rect.width) {
-                    ctx.fillText(String(currentYear), Math.max(this.sidebarWidth + 5, yearX + 5), 15);
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = 'bold 14px Inter, Arial, sans-serif';
+                    ctx.fillText(String(currentYear), Math.max(this.sidebarWidth + 8, yearX + 8), 12);
                 }
                 currentYear++;
             }
-            ctx.font = '11px Arial';
-            ctx.fillStyle = '#6c757d';
+            ctx.font = '11px Inter, Arial, sans-serif';
+            ctx.fillStyle = '#64748b';
             let current = new Date(dates.start.getFullYear(), dates.start.getMonth(), 1);
             while (current <= dates.end) {
                 const monthX = this.dateToX(current, dates);
                 const monthName = current.toLocaleDateString('en-US', { month: 'short' });
-                ctx.fillText(monthName, monthX + 5, 50);
+                ctx.fillText(monthName, monthX + 5, 48);
                 current.setMonth(current.getMonth() + 1);
             }
         }
@@ -433,45 +554,129 @@ export class GanttRenderer extends Component {
     }
 
     drawSidebar(ctx, data, rect) {
-        // Background
-        ctx.fillStyle = '#f8f9fa';
+        // Gradient background
+        const sidebarGradient = ctx.createLinearGradient(0, 0, this.sidebarWidth, 0);
+        sidebarGradient.addColorStop(0, '#ffffff');
+        sidebarGradient.addColorStop(1, '#f8fafc');
+        ctx.fillStyle = sidebarGradient;
         ctx.fillRect(0, this.headerHeight, this.sidebarWidth, rect.height);
         
-        ctx.strokeStyle = '#dee2e6';
-        ctx.strokeRect(0, 0, this.sidebarWidth, rect.height);
+        // Right border with subtle shadow effect
+        const borderGradient = ctx.createLinearGradient(this.sidebarWidth - 3, 0, this.sidebarWidth, 0);
+        borderGradient.addColorStop(0, 'transparent');
+        borderGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
+        ctx.fillStyle = borderGradient;
+        ctx.fillRect(this.sidebarWidth - 3, this.headerHeight, 3, rect.height);
+        
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.sidebarWidth, 0);
+        ctx.lineTo(this.sidebarWidth, rect.height);
+        ctx.stroke();
 
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, this.headerHeight, this.sidebarWidth, rect.height - this.headerHeight);
         ctx.clip();
 
-        ctx.fillStyle = '#495057';
-        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '600 12px Inter, Arial, sans-serif';
         ctx.textBaseline = 'middle';
         
         let y = this.headerHeight - this.state.scrollY;
         
-        data.forEach(group => {
-            const taskCount = Math.max(group.tasks.length, 1);
+        // Store group positions for click detection
+        this._groupPositions = [];
+        
+        data.forEach((group, index) => {
+            const isCollapsed = group.isCollapsed || false;
+            const taskCount = isCollapsed ? 1 : Math.max(group.tasks.length, 1);
             const groupHeight = taskCount * this.cellHeight;
             const textY = y + groupHeight / 2;
             
+            // Store group position for click detection
+            this._groupPositions.push({
+                id: group.id,
+                y: y,
+                height: groupHeight,
+                isCollapsed: isCollapsed
+            });
+            
             if (y + groupHeight > this.headerHeight && y < rect.height) {
-                // Group background alternating color
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+                // Enhanced group background with gradient
+                if (isCollapsed) {
+                    const collapsedGradient = ctx.createLinearGradient(0, y, this.sidebarWidth, y);
+                    collapsedGradient.addColorStop(0, 'rgba(99, 102, 241, 0.12)');
+                    collapsedGradient.addColorStop(1, 'rgba(99, 102, 241, 0.04)');
+                    ctx.fillStyle = collapsedGradient;
+                } else {
+                    // Alternating subtle backgrounds
+                    const altGradient = ctx.createLinearGradient(0, y, this.sidebarWidth, y);
+                    const bgOpacity = index % 2 === 0 ? 0.02 : 0.04;
+                    altGradient.addColorStop(0, `rgba(0, 0, 0, ${bgOpacity})`);
+                    altGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = altGradient;
+                }
                 ctx.fillRect(0, Math.max(y, this.headerHeight), this.sidebarWidth, Math.min(groupHeight, rect.height - y));
                 
-                // Group name
-                ctx.fillStyle = '#495057';
-                const groupText = `${group.name} (${group.tasks.length})`;
-                const truncated = this.truncateText(ctx, groupText, this.sidebarWidth - 20);
-                ctx.fillText(truncated, 10, textY);
+                // Collapse/Expand icon with animation-like styling
+                const iconSize = 16;
+                const iconX = 10;
+                const iconY = textY - iconSize / 2;
                 
-                // Separator line
-                ctx.strokeStyle = '#dee2e6';
+                // Icon background circle
                 ctx.beginPath();
-                ctx.moveTo(0, y + groupHeight);
-                ctx.lineTo(this.sidebarWidth, y + groupHeight);
+                ctx.arc(iconX + iconSize / 2, textY, iconSize / 2 + 2, 0, Math.PI * 2);
+                ctx.fillStyle = isCollapsed ? 'rgba(99, 102, 241, 0.15)' : 'rgba(100, 116, 139, 0.1)';
+                ctx.fill();
+                
+                // Icon
+                ctx.fillStyle = isCollapsed ? '#6366f1' : '#64748b';
+                ctx.font = '10px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const icon = isCollapsed ? '▶' : '▼';
+                ctx.fillText(icon, iconX + iconSize / 2, textY);
+                ctx.textAlign = 'left';
+                
+                // Group name with enhanced styling
+                ctx.fillStyle = isCollapsed ? '#4f46e5' : '#1e293b';
+                ctx.font = isCollapsed ? 'bold 12px Inter, Arial, sans-serif' : '600 12px Inter, Arial, sans-serif';
+                const groupText = isCollapsed 
+                    ? `${group.name} (${group.tasks?.length || 0} hidden)`
+                    : `${group.name} (${group.tasks.length})`;
+                const truncated = this.truncateText(ctx, groupText, this.sidebarWidth - 45);
+                ctx.fillText(truncated, 32, textY);
+                
+                // Task count badge for expanded groups
+                if (!isCollapsed && group.tasks.length > 0) {
+                    const badgeText = group.tasks.length.toString();
+                    ctx.font = 'bold 9px Inter, Arial, sans-serif';
+                    const badgeWidth = ctx.measureText(badgeText).width + 10;
+                    const badgeX = this.sidebarWidth - badgeWidth - 8;
+                    const badgeY = textY - 8;
+                    
+                    // Badge background
+                    ctx.fillStyle = 'rgba(99, 102, 241, 0.15)';
+                    this.roundRect(ctx, badgeX, badgeY, badgeWidth, 16, 8, true, false);
+                    
+                    // Badge text
+                    ctx.fillStyle = '#6366f1';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(badgeText, badgeX + badgeWidth / 2, textY);
+                    ctx.textAlign = 'left';
+                }
+                
+                // Separator line with gradient
+                const lineGradient = ctx.createLinearGradient(0, 0, this.sidebarWidth, 0);
+                lineGradient.addColorStop(0, '#e2e8f0');
+                lineGradient.addColorStop(1, 'rgba(226, 232, 240, 0.3)');
+                ctx.strokeStyle = lineGradient;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(8, y + groupHeight);
+                ctx.lineTo(this.sidebarWidth - 8, y + groupHeight);
                 ctx.stroke();
             }
             
@@ -507,68 +712,142 @@ export class GanttRenderer extends Component {
                 
                 const startX = this.dateToX(start, dates);
                 const endX = this.dateToX(end, dates);
-                const width = Math.max(endX - startX, 5);
-                const y = this.headerHeight + (taskRow * this.cellHeight) + 6 - this.state.scrollY;
-                const height = this.cellHeight - 12;
+                const width = Math.max(endX - startX, 8);
+                const y = this.headerHeight + (taskRow * this.cellHeight) + 5 - this.state.scrollY;
+                const height = this.cellHeight - 10;
 
                 if (y + this.cellHeight > this.headerHeight && y < rect.height) {
                     const isHovered = this.state.hoveredTask?.id === task.id;
                     const isDragged = this.state.draggedTask?.id === task.id;
+                    const isSelected = this.state.selectedTaskId === task.id;
+                    const taskColor = this.getTaskColor(task);
                     
-                    // Task bar shadow
-                    if (isHovered || isDragged) {
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                        ctx.shadowBlur = 10;
-                        ctx.shadowOffsetY = 3;
+                    // Enhanced shadow effects
+                    if (isSelected) {
+                        // Glow effect for selected
+                        ctx.shadowColor = 'rgba(99, 102, 241, 0.6)';
+                        ctx.shadowBlur = 20;
+                        ctx.shadowOffsetY = 0;
+                        ctx.shadowOffsetX = 0;
+                    } else if (isHovered || isDragged) {
+                        // Lift shadow for hovered
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowOffsetY = 6;
+                        ctx.shadowOffsetX = 0;
+                    } else {
+                        // Subtle shadow for normal state
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+                        ctx.shadowBlur = 6;
+                        ctx.shadowOffsetY = 2;
+                        ctx.shadowOffsetX = 0;
                     }
                     
-                    // Task bar background
-                    ctx.fillStyle = this.getTaskColor(task);
+                    // Apply opacity for dragged state
                     if (isDragged) {
-                        ctx.globalAlpha = 0.7;
+                        ctx.globalAlpha = 0.85;
                     }
                     
-                    this.roundRect(ctx, startX, y, width, height, 6, true, false);
+                    // Draw task bar with gradient
+                    ctx.fillStyle = this.createTaskGradient(ctx, startX, y, width, height, taskColor);
+                    this.roundRect(ctx, startX, y, width, height, 8, true, false);
                     
+                    // Reset shadow for subsequent draws
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
                     ctx.shadowOffsetY = 0;
+                    ctx.shadowOffsetX = 0;
                     
-                    // Progress bar
-                    if (task.progress > 0) {
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-                        const progressWidth = (width - 4) * (task.progress / 100);
-                        this.roundRect(ctx, startX + 2, y + 2, progressWidth, height - 4, 4, true, false);
+                    // Add shine effect on top
+                    ctx.fillStyle = this.createShineGradient(ctx, startX, y, width, height);
+                    this.roundRect(ctx, startX, y, width, height * 0.5, 8, true, false);
+                    
+                    // Selection ring with animated glow effect
+                    if (isSelected) {
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([]);
+                        this.roundRect(ctx, startX - 3, y - 3, width + 6, height + 6, 10, false, true);
+                        
+                        // Inner glow ring
+                        ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+                        ctx.lineWidth = 6;
+                        this.roundRect(ctx, startX - 5, y - 5, width + 10, height + 10, 12, false, true);
                     }
                     
-                    // Task name
-                    if (width > 40) {
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = isHovered ? 'bold 11px Arial' : '11px Arial';
+                    // Hover ring
+                    if (isHovered && !isSelected) {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.lineWidth = 2;
+                        this.roundRect(ctx, startX, y, width, height, 8, false, true);
+                    }
+                    
+                    // Enhanced progress bar with gradient
+                    if (task.progress > 0) {
+                        const progressWidth = Math.max((width - 6) * (task.progress / 100), 4);
+                        const progressGradient = ctx.createLinearGradient(startX + 3, 0, startX + 3 + progressWidth, 0);
+                        progressGradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+                        progressGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
+                        ctx.fillStyle = progressGradient;
+                        this.roundRect(ctx, startX + 3, y + height - 6, progressWidth, 4, 2, true, false);
+                        
+                        // Progress bar border
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = 0.5;
+                        this.roundRect(ctx, startX + 3, y + height - 6, progressWidth, 4, 2, false, true);
+                    }
+                    
+                    // Task name with text shadow for better readability
+                    if (width > 45) {
+                        // Text shadow
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                        ctx.font = (isHovered || isSelected) ? 'bold 11px Inter, Arial, sans-serif' : '600 11px Inter, Arial, sans-serif';
                         ctx.textBaseline = 'middle';
-                        const taskText = this.truncateText(ctx, task.name, width - 10);
-                        ctx.fillText(taskText, startX + 6, y + height / 2);
+                        const taskText = this.truncateText(ctx, task.name, width - 16);
+                        ctx.fillText(taskText, startX + 9, y + height / 2 + 1);
+                        
+                        // Main text
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(taskText, startX + 8, y + height / 2);
                     }
                     
                     ctx.globalAlpha = 1.0;
                     
-                    // Resize handles
-                    if (isHovered) {
-                        ctx.fillStyle = '#ffffff';
-                        ctx.strokeStyle = '#495057';
-                        ctx.lineWidth = 1;
+                    // Enhanced resize handles with glow
+                    if ((isHovered || isSelected) && this.props.editable) {
+                        const handleRadius = isSelected ? 5 : 4;
+                        const handleColor = isSelected ? '#6366f1' : taskColor.main;
                         
                         // Left handle
                         ctx.beginPath();
-                        ctx.arc(startX + 4, y + height / 2, 4, 0, Math.PI * 2);
+                        ctx.arc(startX + 6, y + height / 2, handleRadius + 2, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                         ctx.fill();
-                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.arc(startX + 6, y + height / 2, handleRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = handleColor;
+                        ctx.fill();
                         
                         // Right handle
                         ctx.beginPath();
-                        ctx.arc(startX + width - 4, y + height / 2, 4, 0, Math.PI * 2);
+                        ctx.arc(startX + width - 6, y + height / 2, handleRadius + 2, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                         ctx.fill();
-                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.arc(startX + width - 6, y + height / 2, handleRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = handleColor;
+                        ctx.fill();
+                        
+                        // Handle arrows/icons
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '8px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('◀', startX + 6, y + height / 2);
+                        ctx.fillText('▶', startX + width - 6, y + height / 2);
+                        ctx.textAlign = 'left';
                     }
                 }
                 
@@ -612,12 +891,40 @@ export class GanttRenderer extends Component {
         return truncated + ellipsis;
     }
 
-    getTaskColor(task) {
-        const colors = [
-            '#875a7b', '#f06050', '#f4a460', '#6cc1ed', 
-            '#d6145f', '#30c381', '#9c27b0', '#ff9800'
+    // Enhanced color palette with gradient pairs
+    getTaskColors() {
+        return [
+            { main: '#6366f1', light: '#818cf8', dark: '#4f46e5' }, // Indigo
+            { main: '#ef4444', light: '#f87171', dark: '#dc2626' }, // Red
+            { main: '#f59e0b', light: '#fbbf24', dark: '#d97706' }, // Amber
+            { main: '#06b6d4', light: '#22d3ee', dark: '#0891b2' }, // Cyan
+            { main: '#ec4899', light: '#f472b6', dark: '#db2777' }, // Pink
+            { main: '#10b981', light: '#34d399', dark: '#059669' }, // Emerald
+            { main: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' }, // Violet
+            { main: '#f97316', light: '#fb923c', dark: '#ea580c' }, // Orange
         ];
-        return colors[task.color % colors.length] || '#875a7b';
+    }
+
+    getTaskColor(task) {
+        const colors = this.getTaskColors();
+        return colors[task.color % colors.length] || colors[0];
+    }
+
+    // Create gradient for task bars
+    createTaskGradient(ctx, x, y, width, height, colorObj) {
+        const gradient = ctx.createLinearGradient(x, y, x, y + height);
+        gradient.addColorStop(0, colorObj.light);
+        gradient.addColorStop(0.5, colorObj.main);
+        gradient.addColorStop(1, colorObj.dark);
+        return gradient;
+    }
+
+    // Create subtle shine effect
+    createShineGradient(ctx, x, y, width, height) {
+        const gradient = ctx.createLinearGradient(x, y, x, y + height * 0.5);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        return gradient;
     }
 
     getTaskAt(x, y) {
@@ -683,15 +990,28 @@ export class GanttRenderer extends Component {
     }
 
     onMouseDown(e) {
-        if (!this.props.editable) {
-            return;
-        }
         const rect = this.canvasRef.el.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        
+        // Check if click is in sidebar for group collapse toggle
+        if (x < this.sidebarWidth && y > this.headerHeight && this._groupPositions) {
+            const scrolledY = y + this.state.scrollY;
+            for (const groupPos of this._groupPositions) {
+                if (scrolledY >= groupPos.y && scrolledY < groupPos.y + groupPos.height) {
+                    // Clicked on a group - toggle collapse
+                    this.dispatchEvent('toggle-group', { groupId: groupPos.id });
+                    return;
+                }
+            }
+        }
+        
         const task = this.getTaskAt(x, y);
         
-        if (task) {
+        // Store click position for detecting single click vs drag
+        this._mouseDownPos = { x: e.clientX, y: e.clientY, task };
+        
+        if (this.props.editable && task) {
             this.state.draggedTask = {
                 ...task,
                 startX: e.clientX,
@@ -700,7 +1020,7 @@ export class GanttRenderer extends Component {
             };
             this.state.tooltip.visible = false;
             this.canvasRef.el.style.cursor = 'grabbing';
-        } else {
+        } else if (!task) {
             // begin panning when clicking empty area
             this.state.isPanning = true;
             this.state.panStartX = e.clientX;
@@ -752,7 +1072,13 @@ export class GanttRenderer extends Component {
                     x: e.clientX - rect.left,
                     y: e.clientY - rect.top,
                 };
-                this.canvasRef.el.style.cursor = 'grab';
+                
+                // Show grab cursor only if editable, otherwise show pointer
+                if (this.props.editable) {
+                    this.canvasRef.el.style.cursor = 'grab';
+                } else {
+                    this.canvasRef.el.style.cursor = 'pointer';
+                }
             } else {
                 this.state.tooltip.visible = false;
                 this.canvasRef.el.style.cursor = 'default';
@@ -763,12 +1089,19 @@ export class GanttRenderer extends Component {
     }
 
     onMouseUp(e) {
+        // Check if this was a click (not a drag) to select task for color picker
+        const wasDragging = this.state.draggedTask && this._mouseDownPos;
+        const dragDistance = this._mouseDownPos ? 
+            Math.sqrt(Math.pow(e.clientX - this._mouseDownPos.x, 2) + Math.pow(e.clientY - this._mouseDownPos.y, 2)) : 0;
+        const wasClick = dragDistance < 5; // Less than 5 pixels = click
+        
         if (this.state.draggedTask) {
             const task = this.props.data
                 .flatMap(g => g.tasks)
                 .find(t => t.id === this.state.draggedTask.id);
             
-            if (task) {
+            if (task && !wasClick) {
+                // Only dispatch update if actually dragged
                 this.dispatchEvent('task-updated', {
                     taskId: task.id,
                     startDate: task.start_date,
@@ -782,6 +1115,29 @@ export class GanttRenderer extends Component {
             this.state.isPanning = false;
             this.canvasRef.el.style.cursor = 'default';
         }
+        
+        // Handle single click for task selection (for color picker)
+        if (wasClick && this._mouseDownPos?.task) {
+            const clickedTask = this._mouseDownPos.task;
+            // Toggle selection: if already selected, deselect; otherwise select
+            if (this.state.selectedTaskId === clickedTask.id) {
+                this.state.selectedTaskId = null;
+            } else {
+                this.state.selectedTaskId = clickedTask.id;
+            }
+            // Dispatch event to controller
+            this.dispatchEvent('task-selected', { taskId: this.state.selectedTaskId });
+            this.scheduleRedraw();
+        } else if (wasClick && !this._mouseDownPos?.task) {
+            // Clicked on empty area - deselect
+            if (this.state.selectedTaskId) {
+                this.state.selectedTaskId = null;
+                this.dispatchEvent('task-selected', { taskId: null });
+                this.scheduleRedraw();
+            }
+        }
+        
+        this._mouseDownPos = null;
     }
 
     onDoubleClick(e) {

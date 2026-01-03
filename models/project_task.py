@@ -156,6 +156,104 @@ class ProjectTask(models.Model):
         return super().write(vals)
 
     @api.model
+    def _get_gantt_data_by_deadline_status(self, domain):
+        """
+        Group tasks by deadline status:
+        - 🔴 Overdue - Critical (> 7 days overdue)
+        - 🟠 Overdue - Recent (1-7 days overdue)
+        - 🟡 Due Soon (within 3 days)
+        - 🟢 On Track (4-14 days until deadline)
+        - 🔵 Plenty of Time (> 14 days until deadline)
+        - ⚪ No Deadline (no deadline set)
+        """
+        from datetime import datetime, timedelta
+        
+        # Fields to read
+        fields_to_read = [
+            'name', 
+            'task_start_date', 
+            'task_end_date', 
+            'date_deadline',
+            'color',
+            'priority',
+            'description',
+        ]
+        
+        if 'progress' in self.env['project.task']._fields:
+            fields_to_read.append('progress')
+        
+        tasks_data = self.search_read(domain, fields_to_read, order='task_end_date asc')
+        
+        if not tasks_data:
+            return []
+        
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Define deadline status groups with sort order
+        groups = {
+            '1_critical': {'id': 'critical', 'name': '🔴 Overdue - Critical (> 7 days)', 'tasks': [], 'sort': 1},
+            '2_recent': {'id': 'recent', 'name': '🟠 Overdue - Recent (1-7 days)', 'tasks': [], 'sort': 2},
+            '3_due_soon': {'id': 'due_soon', 'name': '🟡 Due Soon (within 3 days)', 'tasks': [], 'sort': 3},
+            '4_on_track': {'id': 'on_track', 'name': '🟢 On Track (4-14 days)', 'tasks': [], 'sort': 4},
+            '5_plenty': {'id': 'plenty', 'name': '🔵 Plenty of Time (> 14 days)', 'tasks': [], 'sort': 5},
+            '6_no_deadline': {'id': 'no_deadline', 'name': '⚪ No Deadline Set', 'tasks': [], 'sort': 6},
+        }
+        
+        for task in tasks_data:
+            task_dict = {
+                'id': task['id'],
+                'name': task['name'],
+                'start_date': task['task_start_date'].isoformat() if task['task_start_date'] else None,
+                'end_date': task['task_end_date'].isoformat() if task['task_end_date'] else None,
+                'progress': task.get('progress', 0) or 0,
+                'color': task.get('color', 0) or 0,
+                'priority': task.get('priority', '0'),
+                'description': task.get('description', '') or '',
+            }
+            
+            # Determine deadline - use task_end_date as the deadline reference
+            deadline = task.get('task_end_date') or task.get('date_deadline')
+            
+            if not deadline:
+                groups['6_no_deadline']['tasks'].append(task_dict)
+                continue
+            
+            # Calculate days until/since deadline  
+            if isinstance(deadline, datetime):
+                deadline_date = deadline.replace(hour=0, minute=0, second=0, microsecond=0)
+            else:
+                deadline_date = datetime.combine(deadline, datetime.min.time())
+            
+            days_diff = (deadline_date - today).days
+            
+            if days_diff < -7:
+                # More than 7 days overdue - Critical
+                groups['1_critical']['tasks'].append(task_dict)
+            elif days_diff < 0:
+                # 1-7 days overdue - Recent
+                groups['2_recent']['tasks'].append(task_dict)
+            elif days_diff <= 3:
+                # Due within 3 days - Due Soon
+                groups['3_due_soon']['tasks'].append(task_dict)
+            elif days_diff <= 14:
+                # 4-14 days - On Track
+                groups['4_on_track']['tasks'].append(task_dict)
+            else:
+                # More than 14 days - Plenty of time
+                groups['5_plenty']['tasks'].append(task_dict)
+        
+        # Return only groups that have tasks, sorted by priority
+        result = [g for g in sorted(groups.values(), key=lambda x: x['sort']) if g['tasks']]
+        
+        # Remove the sort key from output
+        for g in result:
+            del g['sort']
+        
+        _logger.info(f"Gantt deadline status data: {len(result)} groups, {sum(len(g['tasks']) for g in result)} tasks")
+        
+        return result
+
+    @api.model
     def get_gantt_data(self, domain=None, group_by='project_id'):
         """
         Fetch and group tasks for Gantt chart display
@@ -175,6 +273,10 @@ class ProjectTask(models.Model):
                 domain, 
                 [('task_start_date', '!=', False), ('task_end_date', '!=', False)]
             ])
+
+            # Special handling for deadline_status grouping
+            if group_by == 'deadline_status':
+                return self._get_gantt_data_by_deadline_status(gantt_domain)
 
             # Validate group_by field
             valid_group_fields = ['project_id', 'user_ids', 'stage_id', 'priority', 'partner_id']
