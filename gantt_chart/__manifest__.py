@@ -149,22 +149,22 @@ A: The current version focuses on timeline visualization. Dependencies may be ad
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 For support, customization requests, or feedback:
-📧 Email: support@zekromtechnologies.com
-🌐 Website: https://www.zekromtechnologies.com
+📧 Email: support@zekromtech.com
+🌐 Website: https://www.zekromtech.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-© 2024 ZEKROM TECHNOLOGIES - All Rights Reserved
+© 2024 ZEKROM TECH - All Rights Reserved
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     """,
 
     # Author & Company Information
-    'author': 'ZEKROM TECHNOLOGIES',
-    'website': 'https://www.zekromtechnologies.com',
-    'maintainer': 'ZEKROM TECHNOLOGIES',
-    'contributors': ['ZEKROM TECHNOLOGIES DUO'],
+    'author': 'Zekrom Tech',
+    'website': 'https://www.zekromtech.com',
+    'maintainer': 'Zekrom Tech',
+    'contributors': ['Zekrom Tech Duo'],
 
     # Pricing & Licensing
-    'price': 111.99,
+    'price': 60.99,
     'currency': 'USD',
     'license': 'OPL-1',
 
@@ -208,6 +208,6 @@ For support, customization requests, or feedback:
     },
 
     # Odoo App Store Tags
-    'support': 'support@zekromtechnologies.com',
-    'live_test_url': 'https://demo.zekromtechnologies.com',
+    'support': 'support@zekromtech.com',
+   
 }
