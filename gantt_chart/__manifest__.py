@@ -190,7 +190,7 @@ For support, customization requests, or feedback:
 
     # Module Images (for Odoo App Store)
     'images': [
-        'static/description/banner.JPG',
+        'static/description/banner.jpg',
         'static/description/icon.png',
         'static/description/screenshot_1_overview.png',
         'static/description/screenshot_2_colorpicker.png',
